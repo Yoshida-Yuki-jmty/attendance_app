@@ -1,0 +1,11 @@
+<h1 class="text-2xl font-bold text-blue-600 mb-4">ログイン</h1>
+<%= form_with model: @user do |f| %>
+  <div><%= f.label :name %><br><%= f.text_field :name, required: true %></div>
+  <div><%= f.label :email %><br><%= f.email_field :email, required: true %></div>
+  <div><%= f.label :password %><br><%= f.password_field :password, required: true %></div>
+  <div><%= f.label :password_confirmation %><br><%= f.password_field :password_confirmation, required: true %></div>
+  <div class="mt-4"><%= f.submit '登録' %></div>
+<% end %>
+
+<p style="color: green"><%= notice %></p>
+<p style="color: red"><%= alert %></p>

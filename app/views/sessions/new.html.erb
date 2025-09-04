@@ -1,0 +1,26 @@
+<meta name="turbolinks-cache-control" content="no-cache">
+
+<h1 class="text-xl font-bold mb-4">ログイン</h1>
+
+<%= form_with url: session_path, method: :post, local: true, class: "space-y-3" do %>
+  <div>
+    <%= label_tag :email, 'メール' %><br>
+    <%= email_field_tag :email, params[:email], required: true,
+          class: "border rounded px-2 py-1 w-64" %>
+  </div>
+  <div>
+    <%= label_tag :password, 'パスワード' %><br>
+    <%= password_field_tag :password, nil, required: true,
+          class: "border rounded px-2 py-1 w-64" %>
+  </div>
+  <div class="pt-2">
+    <%= submit_tag 'ログイン', class: "px-4 py-2 rounded bg-blue-600 text-white" %>
+  </div>
+<% end %>
+
+<p class="mt-4">
+  <%= link_to '新規登録はこちら', new_user_path, class: "text-blue-700 underline" %>
+</p>
+
+<p class="mt-4 text-green-700"><%= notice %></p>
+<p class="text-red-700"><%= alert %></p>

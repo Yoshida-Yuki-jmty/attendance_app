@@ -1,11 +1,18 @@
-<h1 class="text-2xl font-bold text-blue-600 mb-4">ログイン</h1>
-<%= form_with model: @user do |f| %>
-  <div><%= f.label :name %><br><%= f.text_field :name, required: true %></div>
-  <div><%= f.label :email %><br><%= f.email_field :email, required: true %></div>
-  <div><%= f.label :password %><br><%= f.password_field :password, required: true %></div>
-  <div><%= f.label :password_confirmation %><br><%= f.password_field :password_confirmation, required: true %></div>
-  <div class="mt-4"><%= f.submit '登録' %></div>
+<!-- app/views/users/new.html.erb -->
+<h1 class="text-xl font-bold mb-4">ユーザー登録</h1>
+
+<%= form_with model: @user, class: "space-y-3" do |f| %>
+  <div><%= f.label :name %><br><%= f.text_field :name, required: true,
+        class: "border rounded px-2 py-1 w-64" %></div>
+  <div><%= f.label :email %><br><%= f.email_field :email, required: true,
+        class: "border rounded px-2 py-1 w-64" %></div>
+  <div><%= f.label :password %><br><%= f.password_field :password, required: true,
+        class: "border rounded px-2 py-1 w-64" %></div>
+  <div><%= f.label :password_confirmation %><br><%= f.password_field :password_confirmation, required: true,
+        class: "border rounded px-2 py-1 w-64" %></div>
+  <div class="pt-2"><%= f.submit '登録',
+        class: "px-4 py-2 rounded bg-green-600 text-white" %></div>
 <% end %>
 
-<p style="color: green"><%= notice %></p>
-<p style="color: red"><%= alert %></p>
+<p class="mt-4 text-green-700"><%= notice %></p>
+<p class="text-red-700"><%= alert %></p>

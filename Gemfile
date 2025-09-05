@@ -6,10 +6,10 @@ gem 'bootsnap', '>= 1.4.4', require: false
 gem 'pg', '~> 1.5'
 gem 'puma', '~> 5.6'
 gem 'rails', '6.1.7.9'
-gem 'sprockets-rails', '~> 3.5'
 
-# JS/CSS バンドル
+# AssetsPipeline
 gem 'cssbundling-rails', '~> 1.4'
+gem 'sprockets-rails', '~> 3.5'
 gem 'jsbundling-rails', '~> 1.3'
 
 group :development, :test do
@@ -26,5 +26,5 @@ group :development do
   gem 'rubocop', require: false
   gem 'rubocop-performance', require: false
   gem 'rubocop-rails', require: false
-  gem 'rubocop-rspec' # 追加
+  gem 'rubocop-rspec'
 end

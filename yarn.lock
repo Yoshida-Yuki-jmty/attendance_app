@@ -154,6 +154,11 @@
   resolved "https://registry.yarnpkg.com/@esbuild/win32-x64/-/win32-x64-0.25.9.tgz#585624dc829cfb6e7c0aa6c3ca7d7e6daa87e34f"
   integrity sha512-PPOl1mi6lpLNQxnGoyAfschAodRFYXJ+9fs6WHXz7CSWKbOqiMZsubC+BQsVKuul+3vKLuwTHsS2c2y9EoKwxQ==
 
+"@hotwired/stimulus@^3.2.2":
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/@hotwired/stimulus/-/stimulus-3.2.2.tgz#071aab59c600fed95b97939e605ff261a4251608"
+  integrity sha512-eGeIqNOQpXoPAIP7tC1+1Yc1yl1xnwYqg+3mzqxyrbE5pg5YFBZcA6YoTiByJB6DKAEsiWtl6tjTJS4IYtbB7A==
+
 "@isaacs/fs-minipass@^4.0.0":
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/@isaacs/fs-minipass/-/fs-minipass-4.0.1.tgz#2d59ae3ab4b38fb4270bfa23d30f8e2e86c7fe32"
@@ -309,6 +314,18 @@
   version "6.1.710"
   resolved "https://registry.yarnpkg.com/@rails/ujs/-/ujs-6.1.710.tgz#14cbf938c49985af51cca52d117f9c358ea4a579"
   integrity sha512-NUS8nUkYHGSn/EDg3oJCkpMweSKeFxA4ef6pcnW2fJEZ7RcoWdJa1rr9vamUoqzNR+Ctd8ezsgBMAjxUahVB1w==
+
+"@stimulus-components/character-counter@^5.1.0":
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/@stimulus-components/character-counter/-/character-counter-5.1.0.tgz#76e88d573f6a5dab97537525a8fd2c23015b895d"
+  integrity sha512-yKI1HUnBKqgBdR7q1Q4N8WvvC2XkQp4uha1voPelm2+6OmPL8+5krFGVCdmN7WloxeqLHVZWRSWcM+K/l/8rag==
+
+"@stimulus-components/notification@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@stimulus-components/notification/-/notification-3.0.0.tgz#f67ec72bb0601ec33f597494def72e6ca93dd4a5"
+  integrity sha512-oZrIAcEayLNIhcetMJSLP6S9ryWjiFWBI5JKm639UuRsfSRyxiaHMddb3Xch/Umq6K24h/t2l1zVxxOm/UnMOA==
+  dependencies:
+    stimulus-use "^0.52.2"
 
 "@tailwindcss/cli@^4.1.12":
   version "4.1.12"
@@ -656,6 +673,16 @@ spark-md5@^3.0.0:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/spark-md5/-/spark-md5-3.0.2.tgz#7952c4a30784347abcee73268e473b9c0167e3fc"
   integrity sha512-wcFzz9cDfbuqe0FZzfi2or1sgyIrsDwmPwfZC4hiNidPdPINjeUwNfv5kldczoEAcjl9Y1L3SM7Uz2PUEQzxQw==
+
+stimulus-use@^0.52.2:
+  version "0.52.3"
+  resolved "https://registry.yarnpkg.com/stimulus-use/-/stimulus-use-0.52.3.tgz#d6f35fa93277274957a2ed98a7b04b4d702cb1d6"
+  integrity sha512-stZ5dID6FUrGCR/ChWUa0FT5Z8iqkzT6lputOAb50eF+Ayg7RzJj4U/HoRlp2NV333QfvoRidru9HLbom4hZVw==
+
+tailwindcss-stimulus-components@^6.1.3:
+  version "6.1.3"
+  resolved "https://registry.yarnpkg.com/tailwindcss-stimulus-components/-/tailwindcss-stimulus-components-6.1.3.tgz#c32b8b63e6e8b769057c37449510d15a9e403d40"
+  integrity sha512-2KAEOQkvFClER0SLxfgai19OCpAdFZomSfsiC1e8W+kz4GQRWAZQDnGzBOI03TwvPgI8wQTrLanUC1ugszEiJw==
 
 tailwindcss@4.1.12, tailwindcss@^4.1.12:
   version "4.1.12"

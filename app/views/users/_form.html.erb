@@ -1,0 +1,38 @@
+<%# 引数: user, submit_label:, require_password:, show_login_link: %>
+
+<%= form_with model: user, local: true, class: "space-y-3" do |f| %>
+  <div>
+    <%= f.label :name, "名前" %><br>
+    <%= f.text_field :name, required: true, class: "border rounded px-2 py-1 w-64" %>
+  </div>
+
+  <div>
+    <%= f.label :email, "メールアドレス" %><br>
+    <%= f.email_field :email, required: true, class: "border rounded px-2 py-1 w-64" %>
+  </div>
+
+  <%# パスワード欄は new の時は必須、edit の時は任意に %>
+  <div>
+    <%= f.label :password, (require_password ? "パスワード" : "パスワード（変更時のみ）") %><br>
+    <%= f.password_field :password,
+          required: require_password,
+          class: "border rounded px-2 py-1 w-64" %>
+  </div>
+
+  <div>
+    <%= f.label :password_confirmation, "パスワード確認" %><br>
+    <%= f.password_field :password_confirmation,
+          required: require_password,
+          class: "border rounded px-2 py-1 w-64" %>
+  </div>
+
+  <div class="pt-2">
+    <%= f.submit submit_label, class: "px-4 py-2 rounded bg-green-600 text-white" %>
+  </div>
+<% end %>
+
+<% if show_login_link %>
+  <ul class="mb-4">
+    <li><%= link_to 'ログイン', login_path, class: "text-blue-700 underline" %></li>
+  </ul>
+<% end %>

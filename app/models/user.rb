@@ -22,5 +22,5 @@ class User < ApplicationRecord
 
   validates :name,  presence: true
   validates :email, presence: true, uniqueness: true
-  validates :password, presence: true, length: { minimum: 6 }
+  validates :password, length: { minimum: 8 }, allow_nil: true
 end

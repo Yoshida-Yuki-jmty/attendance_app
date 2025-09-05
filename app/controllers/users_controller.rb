@@ -12,6 +12,7 @@ class UsersController < ApplicationController
     if @user.save
       redirect_to new_session_path, notice: 'ユーザー登録が完了しました。ログインしてください。'
     else
+      flash.now[:alert] = "登録に失敗しました。入力内容をご確認ください"
       render :new, status: :unprocessable_entity
     end
   end
@@ -24,6 +25,7 @@ class UsersController < ApplicationController
     if @user.update(user_params)
       redirect_to @user, notice: 'ユーザー情報を更新しました'
     else
+      flash.now[:alert] = "更新できませんでした。入力内容をご確認ください"
       render :edit, status: :unprocessable_entity
     end
   end

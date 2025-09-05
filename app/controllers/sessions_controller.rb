@@ -20,6 +20,7 @@ class SessionsController < ApplicationController
   end
 
   private
+
   def no_store!
     response.headers['Cache-Control'] = 'no-store'
   end

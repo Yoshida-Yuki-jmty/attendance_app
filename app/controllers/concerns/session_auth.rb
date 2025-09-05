@@ -8,7 +8,6 @@ module SessionAuth
                   :logged_in_user?
   end
 
-
   # --- セッション制御 ---
   def log_in(user)
     reset_session
@@ -44,6 +43,7 @@ module SessionAuth
   def require_current_user!(user = nil)
     user ||= @user
     return if logged_in_user?(user)
+
     redirect_to new_session_path, alert: '権限がありません'
   end
 end

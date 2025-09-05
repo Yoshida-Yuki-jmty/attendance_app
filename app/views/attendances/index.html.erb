@@ -1,0 +1,37 @@
+<!-- app/views/attendances/index.html.erb -->
+<h1>今月の日報</h1>
+
+<div class="mb-3">
+  <%= button_to "出勤", attendances_path, method: :post %>
+
+  <% finished = @today&.finished_at.present? %>
+  <%= button_to "退勤",
+    (@today ? attendance_path(@today) : "#"),
+    method: :patch,
+    disabled: @today.nil? || finished %>
+
+  <% opened = @opened_break.present? %>
+  <%= button_to "休憩開始",
+    breaktimes_path,
+    method: :post,
+    disabled: @today.nil? || finished || @opened_break.present? %>
+
+  <%# ここがポイント：id 付きで PATCH /breaktimes/:id %>
+  <%= button_to "休憩終了",
+    (@opened_break ? breaktime_path(@opened_break) : "#"),
+    method: :patch,
+    disabled: @opened_break.blank? %>
+</div>
+
+<table>
+  <thead><tr><th>日付</th><th>出勤</th><th>退勤</th></tr></thead>
+  <tbody>
+    <% @attendances.each do |a| %>
+      <tr>
+        <td><%= a.work_date %></td>
+        <td><%= a.started_at&.strftime("%H:%M") %></td>
+        <td><%= a.finished_at&.strftime("%H:%M") %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

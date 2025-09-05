@@ -253,6 +253,7 @@ DEPENDENCIES
   rspec-rails (~> 6.1)
   rubocop
   rubocop-rails
+  sprockets-rails (~> 3.5)
 
 RUBY VERSION
    ruby 3.1.2p20

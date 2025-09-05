@@ -6,6 +6,7 @@ gem 'pg', '~> 1.5'
 gem 'puma', '~> 5.6'
 gem 'bcrypt', '~> 3.1'
 gem 'bootsnap', '>= 1.4.4', require: false
+gem 'sprockets-rails', '~> 3.5'
 
 # JS/CSS バンドル
 gem 'jsbundling-rails', '~> 1.3'
@@ -22,4 +23,5 @@ group :development do
   gem 'annotate'
   gem 'rubocop', require: false
   gem 'rubocop-rails', require: false
+  gem 'foreman'
 end

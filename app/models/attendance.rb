@@ -57,8 +57,7 @@ class Attendance < ApplicationRecord
     biz = business_date(now)
     att = user.attendances.find_by(work_date: biz)
     raise StandardError, "本日の出勤打刻がありません" if att.nil?
-    raise StandardError, "すでに退勤済みです"         if att.finished_at.present?
-    
+
     cutoff_end = Time.zone.local(
       att.work_date.year,
       att.work_date.month,
@@ -73,7 +72,9 @@ class Attendance < ApplicationRecord
 
     # 5:00 を跨ぐ場合 → 分割保存
     Attendance.transaction do
-      att.update!(finished_at: cutoff_end)
+      if att.finished_at.blank? || att.finished_at < cutoff_end
+        att.update!(finished_at: cutoff_end)
+      end
 
       next_date = att.work_date + 1
       next_att  = user.attendances.find_or_initialize_by(work_date: next_date)

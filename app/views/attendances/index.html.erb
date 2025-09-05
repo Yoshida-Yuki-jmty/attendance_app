@@ -4,33 +4,57 @@
 <div class="mb-3">
   <%= button_to "出勤", attendances_path, method: :post %>
 
-  <% finished = @today&.finished_at.present? %>
   <%= button_to "退勤",
     (@today ? attendance_path(@today) : "#"),
     method: :patch,
-    disabled: @today.nil? || finished %>
+    disabled: @today.nil? %>
 
   <% opened = @opened_break.present? %>
   <%= button_to "休憩開始",
     breaktimes_path,
     method: :post,
-    disabled: @today.nil? || finished || @opened_break.present? %>
+    disabled: @today.nil? || @opened_break.present? %>
 
-  <%# ここがポイント：id 付きで PATCH /breaktimes/:id %>
   <%= button_to "休憩終了",
     (@opened_break ? breaktime_path(@opened_break) : "#"),
     method: :patch,
     disabled: @opened_break.blank? %>
 </div>
 
-<table>
-  <thead><tr><th>日付</th><th>出勤</th><th>退勤</th></tr></thead>
+<table class="w-full border text-sm">
+  <thead class="bg-gray-100">
+    <tr>
+      <th class="border px-2 py-1">日付</th>
+      <th class="border px-2 py-1">出勤</th>
+      <th class="border px-2 py-1">退勤</th>
+      <th class="border px-2 py-1">休憩（開始-終了）</th>
+      <th class="border px-2 py-1">休憩合計</th>
+      <th class="border px-2 py-1">実働</th>
+    </tr>
+  </thead>
   <tbody>
     <% @attendances.each do |a| %>
       <tr>
-        <td><%= a.work_date %></td>
-        <td><%= a.started_at&.strftime("%H:%M") %></td>
-        <td><%= a.finished_at&.strftime("%H:%M") %></td>
+        <td class="border px-2 py-1"><%= a.work_date %></td>
+        <td class="border px-2 py-1"><%= hm(a.started_at) %></td>
+        <td class="border px-2 py-1"><%= hm(a.finished_at) %></td>
+        <td class="border px-2 py-1">
+          <% if a.breaktimes.any? %>
+            <% a.breaktimes.order(:started_at).each do |bt| %>
+              <div><%= [hm(bt.started_at), hm(bt.finished_at)].compact.join(" - ") %></div>
+            <% end %>
+          <% else %>
+            -
+          <% end %>
+        </td>
+        <td class="border px-2 py-1">
+          <% bs = a.break_seconds %>
+          <%= bs > 0 ? Time.at(bs).utc.strftime("%H:%M") : "-" %>
+        </td>
+        <td class="border px-2 py-1">
+          <% ws = a.worked_seconds %>
+          <%= ws > 0 ? Time.at(ws).utc.strftime("%H:%M") : "-" %>
+        </td>
       </tr>
     <% end %>
   </tbody>

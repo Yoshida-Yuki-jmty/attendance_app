@@ -10,8 +10,18 @@
     <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
   </head>
 
-  <body>
-    <%= render "shared/flash" %>
-    <%= yield %>
+  <body class="text-stone-700 bg-neutral-100">
+    <div class="grid grid-cols-1 mx-auto max-w-screen-lg bg-white">
+      <header class="mb-14">
+        <%= render "shared/navbar" %>
+      </header>
+      <%= render "shared/flash" %>
+      <main class="my-20 mx-6">
+        <%= yield %>
+      </main>
+      <footer>
+        <%= render "shared/footer" %>
+      </footer>
+    </div>
   </body>
 </html>

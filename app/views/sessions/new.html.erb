@@ -1,26 +1,33 @@
 <meta name="turbolinks-cache-control" content="no-cache">
 
-<h1 class="text-xl font-bold mb-4">ログイン</h1>
+<section class="max-w-xl mx-auto">
+  <div class="bg-white rounded-xl shadow border border-gray-100 p-6">
 
-<%= form_with url: session_path, method: :post, local: true, class: "space-y-3" do %>
-  <div>
-    <%= label_tag :email, 'メール' %><br>
-    <%= email_field_tag :email, params[:email], required: true,
-          class: "border rounded px-2 py-1 w-64" %>
-  </div>
-  <div>
-    <%= label_tag :password, 'パスワード' %><br>
-    <%= password_field_tag :password, nil, required: true,
-          class: "border rounded px-2 py-1 w-64" %>
-  </div>
-  <div class="pt-2">
-    <%= submit_tag 'ログイン', class: "px-4 py-2 rounded bg-blue-600 text-white" %>
-  </div>
-<% end %>
+    <h1 class="text-xl font-bold mb-4">ログイン</h1>
 
-<p class="mt-4">
-  <%= link_to '新規登録はこちら', new_user_path, class: "text-blue-700 underline" %>
-</p>
+    <%= form_with url: session_path, method: :post, local: true, html: { class: "grid grid-cols-1 gap-5" } do %>
+      <div>
+        <%= label_tag :email, "（メールアドレス）", class: "font-semibold block mb-1" %>
+        <%= email_field_tag :email, params[:email],
+              required: true, autocomplete: "email",
+              class: "w-full bg-amber-100 text-black font-bold rounded-md py-1 pl-2" %>
+      </div>
 
-<p class="mt-4 text-green-700"><%= notice %></p>
-<p class="text-red-700"><%= alert %></p>
+      <div>
+        <%= label_tag :password, "（パスワード）", class: "font-semibold block mb-1" %>
+        <%= password_field_tag :password, nil,
+              required: true, autocomplete: "current-password",
+              class: "w-full bg-amber-100 text-black rounded-md py-1 pl-2" %>
+      </div>
+
+      <div class="flex justify-center">
+        <%= submit_tag "ログイン",
+              class: "px-3 py-1 rounded-2xl tracking-widest font-semibold bg-white border-2 text-stone-600 hover:text-black border-cyan-400 hover:bg-black hover:bg-opacity-5 focus:outline-none focus:ring-0 transition duration-150 ease-in-out" %>
+      </div>
+    <% end %>
+
+    <div class="mt-4 flex justify-end">
+      <%= link_to "新規登録はこちら", new_user_path, class: "text-blue-700 underline" %>
+    </div>
+  </div>
+</section>

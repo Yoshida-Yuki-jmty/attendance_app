@@ -1,0 +1,29 @@
+<!-- This example requires Tailwind CSS v2.0+ -->
+<nav class='w-full max-w-screen-lg fixed z-50 top-0 bg-white border-b-2'>
+  <div class='flex justify-end mr-6'>
+    <div class='flex items-center h-14 space-x-3'>
+      <% if logged_in? %>
+        <%# 日報登録の有無によって、new, または edit を分岐 %>
+        <div class='px-3 py-2 rounded-md text-sm font-medium no-tap-highlighting hover:bg-blue-100 hover:text-black'>
+          <%= button_to '打刻画面', new_attendance_path, method: :get %> 
+        </div>
+        <div class='px-3 py-2 rounded-md text-sm font-medium no-tap-highlighting hover:bg-blue-100 hover:text-black'>
+          <%= button_to '勤怠一覧', attendances_path, method: :get %> 
+        </div>
+        <div class='px-3 py-2 rounded-md text-sm font-medium no-tap-highlighting hover:bg-emerald-100 hover:text-black'>
+          <%= button_to 'マイページ', user_path(current_user), method: :get %> 
+        </div>
+        <div class='px-3 py-2 rounded-md text-sm font-medium no-tap-highlighting hover:bg-pink-100 hover:text-black'>
+          <%= button_to 'ログアウト', session_path, method: :delete %> 
+        </div>
+      <% else %> 
+        <div class='px-3 py-2 rounded-md text-sm font-medium no-tap-highlighting hover:bg-emerald-100 hover:text-black'>
+          <%= button_to '会員登録', new_user_path, method: :get %> 
+        </div>
+        <div class='px-3 py-2 rounded-md text-sm font-medium no-tap-highlighting hover:bg-emerald-100 hover:text-black'>
+          <%= button_to 'ログイン', new_session_path, method: :get %> 
+        </div>
+      <% end %>
+    </div>
+  </div>
+</nav>

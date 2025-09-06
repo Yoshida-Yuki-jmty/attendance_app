@@ -3,6 +3,6 @@ Rails.application.routes.draw do
   root 'attendances#index'
   resources :users
   resource  :session, only: [:new, :create, :destroy]
-  resources :attendances, except: [:new, :show, :destroy]
+  resources :attendances, except: [:show, :destroy]
   resources :breaktimes,  only: [:create, :update]
 end

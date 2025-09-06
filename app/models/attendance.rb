@@ -19,11 +19,16 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class Attendance < ApplicationRecord
+
+  class NoClockInError         < StandardError; end
+  class AlreadyClockedOutError < StandardError; end
+
   CUTOFF_HOUR = 5 # 5:00 区切り
 
   belongs_to :user
   has_many :breaktimes, dependent: :destroy
 
+  # user_id に対して、workday が一意(unique)となることを強制
   validates :work_date, presence: true, uniqueness: { scope: :user_id }
   validate :finished_after_started
 
@@ -44,7 +49,7 @@ class Attendance < ApplicationRecord
     att = user.attendances.find_by(work_date: biz)
 
     if att
-      raise StandardError, "本日は退勤済みです" if att.finished_at.present?
+      raise AlreadyClockedOutError, I18n.t("attendances.errors.already_clocked_out") if att.finished_at.present?
       att.update!(started_at: now) # 2回目以降は出勤時刻を更新
       att
     else
@@ -56,7 +61,7 @@ class Attendance < ApplicationRecord
   def self.clock_out!(user, now = Time.zone.now)
     biz = business_date(now)
     att = user.attendances.find_by(work_date: biz)
-    raise StandardError, "本日の出勤打刻がありません" if att.nil?
+    raise NoClockInError, I18n.t("attendances.errors.no_clock_in") if att.nil?
 
     cutoff_end = Time.zone.local(
       att.work_date.year,

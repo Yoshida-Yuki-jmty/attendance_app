@@ -1,0 +1,68 @@
+<h1 class="text-xl font-bold mb-4">本日の日報</h1>
+
+<div class="mb-3 flex gap-2">
+  <%= button_to "出勤", user_attendance_path(@today), method: :post, class: "px-3 py-1 border rounded" %>
+
+  <%= button_to "退勤",
+        (@today ? user_attendance_path(@today) : "#"),
+        method: :patch,
+        disabled: @today.nil?,
+        class: "px-3 py-1 border rounded #{'opacity-50 cursor-not-allowed' if @today.nil?}" %>
+
+  <%= button_to "休憩開始",
+        user_breaktimes_path(current_user),
+        method: :post,
+        disabled: @today.nil? || @opened_break.present?,
+        class: "px-3 py-1 border rounded #{'opacity-50 cursor-not-allowed' if @today.nil? || @opened_break.present?}" %>
+
+  <%= button_to "休憩終了",
+        (@opened_break ? user_breaktimes_path(@opened_break) : "#"),
+        method: :patch,
+        disabled: @opened_break.blank?,
+        class: "px-3 py-1 border rounded #{'opacity-50 cursor-not-allowed' if @opened_break.blank?}" %>
+</div>
+
+<% if @today.present? %>
+  <table class="w-full border text-sm">
+    <thead class="bg-gray-100">
+      <tr>
+        <th class="border px-2 py-1">日付</th>
+        <th class="border px-2 py-1">出勤</th>
+        <th class="border px-2 py-1">退勤</th>
+        <th class="border px-2 py-1">休憩（開始-終了）</th>
+        <th class="border px-2 py-1">休憩合計</th>
+        <th class="border px-2 py-1">実働</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="border px-2 py-1"><%= @today.work_date %></td>
+        <td class="border px-2 py-1"><%= hm(@today.started_at) %></td>
+        <td class="border px-2 py-1"><%= hm(@today.finished_at) %></td>
+        <td class="border px-2 py-1">
+          <% if @today.breaktimes.any? %>
+            <% @today.breaktimes.order(:started_at).each do |bt| %>
+              <div><%= [hm(bt.started_at), hm(bt.finished_at)].compact.join(" - ") %></div>
+            <% end %>
+          <% else %>
+            -
+          <% end %>
+        </td>
+        <td class="border px-2 py-1">
+          <% bs = @today.break_seconds %>
+          <%= bs > 0 ? Time.at(bs).utc.strftime("%H:%M") : "-" %>
+        </td>
+        <td class="border px-2 py-1">
+          <% ws = @today.worked_seconds %>
+          <%= ws > 0 ? Time.at(ws).utc.strftime("%H:%M") : "-" %>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+<% else %>
+  <p class="text-gray-600">本日の出勤は未登録です。</p>
+<% end %>
+
+<div class="mt-4 flex justify-end">
+  <%= link_to "今月の月報を見る", user_attendances_path(current_user), class: "text-blue-700 underline" %>
+</div>

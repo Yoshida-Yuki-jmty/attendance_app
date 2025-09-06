@@ -7,7 +7,7 @@ class SessionsController < ApplicationController
     user = User.find_by(email: params[:email])
     if user&.authenticate(params[:password])
       log_in(user)
-      redirect_to user_path(user), notice: 'ログインしました'
+      redirect_to user_attendance_path(user), notice: 'ログインしました'
     else
       flash.now[:alert] = 'メールまたはパスワードが違います'
       render :new, status: :unprocessable_entity

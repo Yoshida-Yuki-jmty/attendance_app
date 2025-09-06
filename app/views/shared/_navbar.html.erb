@@ -5,10 +5,10 @@
       <% if logged_in? %>
         <%# 日報登録の有無によって、new, または edit を分岐 %>
         <div class='px-3 py-2 rounded-md text-sm font-medium no-tap-highlighting hover:bg-blue-100 hover:text-black'>
-          <%= button_to '打刻画面', new_attendance_path, method: :get %> 
+          <%= button_to '打刻画面', user_attendance_path(current_user), method: :get %> 
         </div>
         <div class='px-3 py-2 rounded-md text-sm font-medium no-tap-highlighting hover:bg-blue-100 hover:text-black'>
-          <%= button_to '勤怠一覧', attendances_path, method: :get %> 
+          <%= button_to '勤怠一覧', user_attendances_path(current_user), method: :get %> 
         </div>
         <div class='px-3 py-2 rounded-md text-sm font-medium no-tap-highlighting hover:bg-emerald-100 hover:text-black'>
           <%= button_to 'マイページ', user_path(current_user), method: :get %> 

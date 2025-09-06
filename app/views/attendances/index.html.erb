@@ -1,59 +1,61 @@
-<!-- app/views/attendances/index.html.erb -->
-<h1>今月の日報</h1>
+<h1 class="text-xl font-bold mb-4">今月の月報</h1>
 
-<div class="mb-3">
-  <%= button_to "出勤", attendances_path, method: :post %>
-
-  <%= button_to "退勤",
-    (@today ? attendance_path(@today) : "#"),
-    method: :patch,
-    disabled: @today.nil? %>
-
-  <% opened = @opened_break.present? %>
-  <%= button_to "休憩開始",
-    breaktimes_path,
-    method: :post,
-    disabled: @today.nil? || @opened_break.present? %>
-
-  <%= button_to "休憩終了",
-    (@opened_break ? breaktime_path(@opened_break) : "#"),
-    method: :patch,
-    disabled: @opened_break.blank? %>
+<div class="mb-3 flex items-center gap-3">
+  <% prev = (@month - 1.month).beginning_of_month %>
+  <% nextm = (@month + 1.month).beginning_of_month %>
+  <%= link_to "« 前月", user_attendances_path(month: prev.to_s), class: "text-blue-700 underline" %>
+  <span><%= @month.strftime("%Y年%m月") %></span>
+  <%= link_to "翌月 »", user_attendances_path(month: nextm.to_s), class: "text-blue-700 underline" %>
+  <div class="ml-auto">
+    <%= link_to "本日へ", root_path, class: "text-blue-700 underline" %>
+  </div>
 </div>
 
 <table class="w-full border text-sm">
   <thead class="bg-gray-100">
     <tr>
       <th class="border px-2 py-1">日付</th>
+      <th class="border px-2 py-1">ステータス</th>
       <th class="border px-2 py-1">出勤</th>
       <th class="border px-2 py-1">退勤</th>
-      <th class="border px-2 py-1">休憩（開始-終了）</th>
       <th class="border px-2 py-1">休憩合計</th>
       <th class="border px-2 py-1">実働</th>
     </tr>
   </thead>
   <tbody>
-    <% @attendances.each do |a| %>
-      <tr>
-        <td class="border px-2 py-1"><%= a.work_date %></td>
-        <td class="border px-2 py-1"><%= hm(a.started_at) %></td>
-        <td class="border px-2 py-1"><%= hm(a.finished_at) %></td>
+    <% @days.each do |d| %>
+      <% a = @att_by_date[d] %>
+      <% past_or_today = (d <= @today) %>
+      <% status =
+           if a.nil?
+             past_or_today ? "未登録" : "—"
+           elsif a.finished_at.present?
+             "退勤済み"
+           elsif a.started_at.present?
+             "出勤済み"
+           else
+             "未登録"
+           end %>
+      <tr class="<%= 'opacity-60' unless past_or_today %>">
+        <td class="border px-2 py-1"><%= d %></td>
+        <td class="border px-2 py-1"><%= status %></td>
+        <td class="border px-2 py-1"><%= a ? hm(a.started_at)  : "-" %></td>
+        <td class="border px-2 py-1"><%= a ? hm(a.finished_at) : "-" %></td>
         <td class="border px-2 py-1">
-          <% if a.breaktimes.any? %>
-            <% a.breaktimes.order(:started_at).each do |bt| %>
-              <div><%= [hm(bt.started_at), hm(bt.finished_at)].compact.join(" - ") %></div>
-            <% end %>
+          <% if a %>
+            <% bs = a.break_seconds %>
+            <%= bs > 0 ? Time.at(bs).utc.strftime("%H:%M") : "-" %>
           <% else %>
             -
           <% end %>
         </td>
         <td class="border px-2 py-1">
-          <% bs = a.break_seconds %>
-          <%= bs > 0 ? Time.at(bs).utc.strftime("%H:%M") : "-" %>
-        </td>
-        <td class="border px-2 py-1">
-          <% ws = a.worked_seconds %>
-          <%= ws > 0 ? Time.at(ws).utc.strftime("%H:%M") : "-" %>
+          <% if a %>
+            <% ws = a.worked_seconds %>
+            <%= ws > 0 ? Time.at(ws).utc.strftime("%H:%M") : "-" %>
+          <% else %>
+            -
+          <% end %>
         </td>
       </tr>
     <% end %>

@@ -8,9 +8,9 @@ RSpec.describe "Attendances", type: :request do
     end
   end
 
-  describe "GET /new" do
+  describe "GET /show" do
     it "returns http success" do
-      get "/attendances/new"
+      get "/attendances/show"
       expect(response).to have_http_status(:success)
     end
   end
@@ -25,13 +25,6 @@ RSpec.describe "Attendances", type: :request do
   describe "GET /update" do
     it "returns http success" do
       get "/attendances/update"
-      expect(response).to have_http_status(:success)
-    end
-  end
-
-  describe "GET /edit" do
-    it "returns http success" do
-      get "/attendances/edit"
       expect(response).to have_http_status(:success)
     end
   end

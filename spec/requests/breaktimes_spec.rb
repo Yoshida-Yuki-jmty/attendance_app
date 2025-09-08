@@ -12,7 +12,7 @@ RSpec.describe "Breaktimes", type: :request do
       post user_breaktimes_path(user)
     }.to change { user.breaktimes.count }.by(1)
 
-    expect(response).to redirect_to(user_attendance_path(user))
+    expect(response).to redirect_to(user_current_attendance_path(user))
   end
 
   it "PATCH /users/:user_id/breaktimes/:id で休憩終了できる" do
@@ -22,7 +22,7 @@ RSpec.describe "Breaktimes", type: :request do
 
     patch user_breaktime_path(user, bt)
     expect(bt.reload.finished_at).to be_present
-    expect(response).to redirect_to(user_attendance_path(user))
+    expect(response).to redirect_to(user_current_attendance_path(user))
   end
 
 end

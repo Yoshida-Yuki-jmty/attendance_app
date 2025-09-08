@@ -14,51 +14,73 @@
       elsif a.finished_at.present?
         "退勤済み"
       elsif a.started_at.present?
-        "出勤済み"
+        "出勤中"
       else
         "未登録"
       end %>
 
   <td class="border border-gray-300 px-2 py-1 align-middle">
-    <div class="flex items-center justify-center"><%= status %></div>
-  </td>
-
-  <td class="border border-gray-300 px-2 py-1 align-middle"><%= a&.started_at ? hm(a.started_at)  : "-" %></td>
-  <td class="border border-gray-300 px-2 py-1 align-middle"><%= a&.finished_at ? hm(a.finished_at) : "-" %></td>
-
-  <td class="border border-gray-300 px-2 py-1 align-middle">
-    <% if a %>
-      <% bs = a.break_seconds %>
-      <%= bs.positive? ? Time.at(bs).utc.strftime("%H:%M") : "-" %>
-    <% else %>
-      -
-    <% end %>
+    <div class="flex items-center justify-center">
+      <%= status %>
+    </div>
   </td>
 
   <td class="border border-gray-300 px-2 py-1 align-middle">
-    <% if a %>
-      <% ws = a.worked_seconds %>
-      <%= ws.positive? ? Time.at(ws).utc.strftime("%H:%M") : "-" %>
-    <% else %>
-      -
-    <% end %>
+    <div class="flex items-center justify-center">
+      <%= a&.started_at ? hm(a.started_at)  : "-" %>
+    </div>
   </td>
 
-  <td class="border border-gray-300 px-2 py-1 align-middle text-right">
-    <% if a %>
-      <!-- 既存レコードは edit_row（member） -->
-      <%= button_to "編集",
-          edit_row_user_attendance_path(current_user, a, format: :turbo_stream),
-          method: :get,
-          form: { data: { turbo: true } },
-          class: "px-3 py-1 border rounded text-blue-700" %>
-    <% else %>
-    <!-- 未登録日は build_row（collection, POST）で作ってから編集 -->
-      <%= button_to "編集",
-          build_row_user_attendances_path(current_user, date: d, format: :turbo_stream),
-          method: :post,
-          form: { data: { turbo: true } },
-          class: "px-3 py-1 border rounded text-blue-700" %>
-    <% end %>
+  <td class="border border-gray-300 px-2 py-1 align-middle">
+    <div class="flex items-center justify-center">
+      <%= a&.finished_at ? hm(a.finished_at) : "-" %>
+    </div>
+  </td>
+
+  <td class="border border-gray-300 px-2 py-1 align-middle">
+    <div class="flex items-center justify-center">
+      <% if a %>
+        <% bs = a.break_seconds %>
+        <%= bs.positive? ? Time.at(bs).utc.strftime("%H:%M") : "-" %>
+      <% else %>
+        -
+      <% end %>
+    </div>
+  </td>
+
+  <td class="border border-gray-300 px-2 py-1 align-middle">
+    <div class="flex items-center justify-center">
+      <% if a %>
+        <% ws = a.worked_seconds %>
+        <%= ws.positive? ? Time.at(ws).utc.strftime("%H:%M") : "-" %>
+      <% else %>
+        -
+      <% end %>
+    </div>
+  </td>
+
+  <td class="border border-gray-300 py-1 align-middle">
+    <div class="flex justify-start items-center gap-x-2 ml-3.5">
+      <% if a %>
+        <!-- 既存レコードは edit_row（member） -->
+        <%= button_to "編集",
+            edit_row_user_attendance_path(current_user, a, format: :turbo_stream),
+            method: :get,
+            form: { data: { turbo: true } },
+            class: "px-2 py-0.5 border rounded text-blue-700" %>
+        <%= button_to "削除",
+            user_attendance_path(current_user, a, format: :turbo_stream),
+            method: :delete,
+            form:  { data: { turbo: true, turbo_confirm: "この日の勤怠を削除します。よろしいですか？" } },
+            class: "px-2 py-0.5 border rounded text-red-600" %>
+      <% else %>
+      <!-- 未登録日は build_row（collection, POST）で作ってから編集 -->
+        <%= button_to "編集",
+            build_row_user_attendances_path(current_user, date: d, format: :turbo_stream),
+            method: :post,
+            form: { data: { turbo: true } },
+            class: "px-2 py-0.5 border rounded text-blue-700" %>
+      <% end %>
+    </div>
   </td>
 </tr>

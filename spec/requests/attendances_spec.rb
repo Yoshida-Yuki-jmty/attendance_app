@@ -6,13 +6,13 @@ RSpec.describe "Attendances", type: :request do
 
   describe "GET /users/:user_id/attendance (show)" do
     it "ログイン必須" do
-      get user_attendance_path(user)
+      get user_current_attendance_path(user)
       expect(response).to redirect_to(new_session_path)
     end
 
     it "ログイン後は 200" do
       sign_in(user)
-      get user_attendance_path(user)
+      get user_current_attendance_path(user)
       expect(response).to have_http_status(:ok)
     end
   end
@@ -20,9 +20,10 @@ RSpec.describe "Attendances", type: :request do
   describe "GET /users/:user_id/attendances (index)" do
     it "200 を返す" do
       sign_in(user)
-      get user_attendances_path(user, month: Date.current.beginning_of_month.to_s)
+      get user_attendances_path(user, month: Date.current.strftime("%Y-%m"))
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include(Date.current.beginning_of_month.strftime("%Y年%m月"))
+      expect(response.body).to include(%(<turbo-frame id="att-month">))
+      expect(response.body).to include(%(<table))
     end
   end
 
@@ -53,7 +54,8 @@ RSpec.describe "Attendances", type: :request do
       date = Date.new(2025,9,2)
       post build_row_user_attendances_path(user, format: :turbo_stream), params: { date: date.to_s }
       expect(response.media_type).to eq Mime[:turbo_stream]
-      expect(response.body).to include(date.to_s)
+      expect(response.body).to include(%(target="attendance-#{date.strftime('%Y%m%d')}"))
+      expect(response.body).to include(%(<tr id="attendance_))
     end
 
     it "cancel_row: 空の新規レコードは削除され未登録表示へ戻す" do
@@ -71,7 +73,7 @@ RSpec.describe "Attendances", type: :request do
 
     it "POST /attendance 出勤が作成される" do
       expect {
-        post user_attendance_path(user)
+        post user_current_attendance_path(user)
       }.to change { user.attendances.count }.by(1)
       expect(response).to redirect_to(root_path)
     end
@@ -79,7 +81,7 @@ RSpec.describe "Attendances", type: :request do
     it "PATCH /attendance 退勤できる" do
       Attendance.clock_in!(user) # 先に出勤
       expect {
-        patch user_attendance_path(user)
+        patch user_current_attendance_path(user)
       }.to change { user.attendances.where("finished_at IS NOT NULL").count }.by(1)
       expect(response).to redirect_to(root_path)
     end
@@ -95,7 +97,7 @@ end
 describe "GET /users/:user_id/attendance (show)" do
   it "200 を返す" do
     sign_in(user)
-    get user_attendance_path(user)
+    get user_current_attendance_path(user)
     expect(response).to have_http_status(:ok)
   end
 end
@@ -103,7 +105,7 @@ end
 describe "POST /users/:user_id/attendance (create)" do
   it "出勤できる" do
     sign_in(user)
-    post user_attendance_path(user)
+    post user_current_attendance_path(user)
     expect(response).to redirect_to(root_path)
   end
 end
@@ -112,7 +114,7 @@ describe "PATCH /users/:user_id/attendance (update)" do
   it "退勤できる" do
     sign_in(user)
     Attendance.clock_in!(user)
-    patch user_attendance_path(user)
+    patch user_current_attendance_path(user)
     expect(response).to redirect_to(root_path)
   end
 end

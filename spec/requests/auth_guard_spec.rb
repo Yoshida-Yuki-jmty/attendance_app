@@ -5,7 +5,7 @@ RSpec.describe "Auth guard", type: :request do
 
   context "未ログイン時" do
     it "出勤画面（show）へアクセスするとログインへリダイレクト" do
-      get user_attendance_path(user)
+      get user_current_attendance_path(user)
       expect(response).to redirect_to(new_session_path)
       expect(flash[:alert]).to eq("ログインしてください")
     end
@@ -17,10 +17,10 @@ RSpec.describe "Auth guard", type: :request do
     end
 
     it "打刻系POST/PATCHもログインへリダイレクト" do
-      post  user_attendance_path(user) # 出勤
+      post  user_current_attendance_path(user) # 出勤
       expect(response).to redirect_to(new_session_path)
 
-      patch user_attendance_path(user) # 退勤
+      patch user_current_attendance_path(user) # 退勤
       expect(response).to redirect_to(new_session_path)
     end
   end
@@ -29,7 +29,7 @@ RSpec.describe "Auth guard", type: :request do
     before { sign_in(user) }
 
     it "出勤画面（show）を表示できる" do
-      get user_attendance_path(user)
+      get user_current_attendance_path(user)
       expect(response).to have_http_status(:ok)
     end
 
@@ -40,7 +40,7 @@ RSpec.describe "Auth guard", type: :request do
 
     it "他ユーザIDをURLに入れても中身はcurrent_userベース（少なくとも403/リダイレクトはしない）" do
       other = create(:user)
-      get user_attendance_path(other)
+      get user_current_attendance_path(other)
       expect(response).to have_http_status(:ok)
     end
   end

@@ -14,17 +14,17 @@ RSpec.describe 'Sessions', type: :request do
     it "ログイン済みなら勤怠一覧画面へリダイレクト" do
       sign_in(user)
       get new_session_path
-      expect(response).to redirect_to(user_attendance_path(user))
+      expect(response).to redirect_to(user_current_attendance_path(user))
     end
   end
 
   describe "POST /session" do
     it "正しい資格情報でログインできる" do
       post session_path, params: { email: user.email, password: "password" }
-      expect(response).to redirect_to(user_attendance_path(user))
+      expect(response).to redirect_to(user_current_attendance_path(user))
       follow_redirect!
       # 保護ページにアクセスしてもリダイレクトされないことを以後のテストで確認する
-      get user_attendance_path(user)
+      get user_current_attendance_path(user)
       expect(response).to have_http_status(:ok)
     end
 
@@ -42,7 +42,7 @@ RSpec.describe 'Sessions', type: :request do
       expect(response).to redirect_to(new_session_path)
 
       # ログアウト後は保護ページに行くとログイン画面へ飛ばされる
-      get user_attendance_path(user)
+      get user_current_attendance_path(user)
       expect(response).to redirect_to(new_session_path)
       expect(flash[:alert]).to eq("ログインしてください")
     end

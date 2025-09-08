@@ -5,31 +5,31 @@ class BreaktimesController < ApplicationController
   def create
     attendance = current_attendance
     if attendance.nil?
-      redirect_to user_attendance_path(current_user), alert: "出勤後に休憩を開始できます"
+      redirect_to user_current_attendance_path(current_user), alert: "出勤後に休憩を開始できます"
       return
     end
 
     Breaktime.start_break_for!(attendance)
-    redirect_to user_attendance_path(current_user), notice: "休憩を開始しました"
+    redirect_to user_current_attendance_path(current_user), notice: "休憩を開始しました"
   rescue ActiveRecord::RecordNotUnique
-    redirect_to user_attendance_path(current_user), alert: "すでに休憩中です"
+    redirect_to user_current_attendance_path(current_user), alert: "すでに休憩中です"
   rescue => e
-    redirect_to user_attendance_path(current_user), alert: e.message
+    redirect_to user_current_attendance_path(current_user), alert: e.message
   end
 
   # 休憩終了
   def update
     breaktime = current_user.breaktimes.find(params[:id])
     if breaktime.finished_at.present?
-      return redirect_to user_attendance_path(current_user), alert: "この休憩は既に終了しています"
+      return redirect_to user_current_attendance_path(current_user), alert: "この休憩は既に終了しています"
     end
 
     breaktime.update!(finished_at: Time.zone.now)
-    redirect_to user_attendance_path(current_user), notice: "休憩を終了しました"
+    redirect_to user_current_attendance_path(current_user), notice: "休憩を終了しました"
   rescue ActiveRecord::RecordNotFound
-    redirect_to user_attendance_path(current_user), alert: "休憩が見つかりません"
+    redirect_to user_current_attendance_path(current_user), alert: "休憩が見つかりません"
   rescue => e
-    redirect_to user_attendance_path(current_user), alert: e.message
+    redirect_to user_current_attendance_path(current_user), alert: e.message
   end
 
   private

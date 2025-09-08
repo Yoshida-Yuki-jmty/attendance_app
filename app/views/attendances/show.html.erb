@@ -16,13 +16,13 @@
 
 <div class="mb-3 flex gap-2">
   <%= button_to "出勤",
-        user_attendance_path(current_user),
+        user_current_attendance_path(current_user),
         method: :post,
         disabled: dis_in,
         class: button_ui_class(dis_in) %>
 
   <%= button_to "退勤",
-        (@today ? user_attendance_path(current_user) : "#"),
+        (@today ? user_current_attendance_path(current_user) : "#"),
         method: :patch,
         disabled: dis_out,
         class: button_ui_class(dis_out) %>

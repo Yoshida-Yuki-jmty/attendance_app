@@ -1,34 +1,38 @@
 <h1 class="text-3xl font-bold text-center mb-4">今月の月報</h1>
 
-<%= form_with url: user_attendances_path(current_user), method: :get,
-              data: { turbo_frame: "att-month" },
-              class: "mb-3 inline-flex items-center gap-2" do %>
-  <label class="text-xs text-gray-700">月を選択 :</label>
-  <%= month_field_tag :month,
-        @month.strftime("%Y-%m"),
-        class: "border rounded px-2 py-1",
-        onchange: "this.form.requestSubmit()" %>
-<% end %>
+<div class="mx-auto w-full max-w-3xl px-2">
+  <%= form_with url: user_attendances_path(current_user), method: :get,
+                data: { turbo_frame: "att-month" },
+                class: "mb-3 inline-flex items-center gap-2" do %>
+    <label class="text-xs text-gray-700">月を選択 :</label>
+    <%= month_field_tag :month,
+          @month.strftime("%Y-%m"),
+          class: "border rounded px-2 py-1",
+          onchange: "this.form.requestSubmit()" %>
+  <% end %>
 
-<turbo-frame id="att-month">
-  <table class="w-full border text-sm">
-    <thead class="bg-gray-100">
-      <tr>
-        <th class="border border-gray-300 px-2 py-1">日付</th>
-        <th class="border border-gray-300 px-2 py-1">曜日</th>
-        <th class="border border-gray-300 px-2 py-1">ステータス</th>
-        <th class="border border-gray-300 px-2 py-1">出勤</th>
-        <th class="border border-gray-300 px-2 py-1">退勤</th>
-        <th class="border border-gray-300 px-2 py-1">休憩時間</th>
-        <th class="border border-gray-300 px-2 py-1">実働時間</th>
-        <th class="border border-gray-300 px-2 py-1">修正</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% @days.each do |d| %>
-        <% a = @att_by_date[d] %>
-        <%= render "attendances/row_display", a: a, d: d %>
-      <% end %>
-    </tbody>
-  </table>
-</turbo-frame>
+  <turbo-frame id="att-month">
+    <div class="overflow-x-auto">
+      <table class="w-full table-fixed border text-sm">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="border border-gray-300 w-20 py-1">日付</th>
+            <th class="border border-gray-300 w-12 py-1">曜日</th>
+            <th class="border border-gray-300 w-24 py-1">ステータス</th>
+            <th class="border border-gray-300 w-24 py-1">出勤</th>
+            <th class="border border-gray-300 w-24 py-1">退勤</th>
+            <th class="border border-gray-300 w-26 py-1">休憩時間</th>
+            <th class="border border-gray-300 w-20 py-1">実働時間</th>
+            <th class="border border-gray-300 w-32 py-1">修正</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @days.each do |d| %>
+            <% a = @att_by_date[d] %>
+            <%= render "attendances/row_display", a: a, d: d %>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </turbo-frame>
+</div>

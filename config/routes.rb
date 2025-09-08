@@ -3,8 +3,8 @@ Rails.application.routes.draw do
   root 'attendances#show'
 
   resources :users do
-    resource  :attendance,  only: [:show, :create, :update], controller: "attendances"
-    resources :attendances, only: [:index],                  controller: "attendances" do
+    resource  :current_attendance,  only: [:show, :create, :update], controller: "attendances"
+    resources :attendances, only: [:index, :destroy],                controller: "attendances" do
       member do
         get   :edit_row
         patch :save_row

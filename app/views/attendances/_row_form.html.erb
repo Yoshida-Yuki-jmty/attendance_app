@@ -12,43 +12,62 @@
   </td>
 
   <td class="border border-gray-300 px-2 py-1 align-middle">
-    <%= time_field_tag "attendance[started_at_hm]",
-          a.started_at&.in_time_zone&.strftime("%H:%M"),
-          class: "border rounded px-2 py-1 w-28",
-          placeholder: "HH:MM",
-          form: form_dom_id %>
+    <div class="flex justify-center items-center">
+      <%= time_field_tag "attendance[started_at_hm]",
+            a.started_at&.in_time_zone&.strftime("%H:%M"),
+            class: "border rounded px-2 py-1 w-24",
+            placeholder: "HH:MM",
+            form: form_dom_id %>
+    </div>
   </td>
 
   <td class="border border-gray-300 px-2 py-1 align-middle">
-    <%= time_field_tag "attendance[finished_at_hm]",
-          a.finished_at&.in_time_zone&.strftime("%H:%M"),
-          class: "border rounded px-2 py-1 w-28",
-          placeholder: "HH:MM",
-          form: form_dom_id %>
+    <div class="flex justify-center items-center">
+      <%= time_field_tag "attendance[finished_at_hm]",
+            a.finished_at&.in_time_zone&.strftime("%H:%M"),
+            class: "border rounded px-2 py-1 w-24",
+            placeholder: "HH:MM",
+            form: form_dom_id %>
+    </div>
   </td>
 
-  <td class="border border-gray-300 px-2 py-1 align-middle text-gray-400">—</td>
-  <td class="border border-gray-300 px-2 py-1 align-middle text-gray-400">—</td>
+  <td class="border border-gray-300 px-2 py-1 align-middle">
+    <div class="flex justify-center items-center">
+      <% total_sec = a.break_seconds.to_i %>
+      <% hh = total_sec / 3600; mm = (total_sec % 3600) / 60 %>
+      <%= time_field_tag "attendance[break_total_hm]",
+            format("%02d:%02d", hh, mm),
+            class: "border rounded px-2 py-1 w-24",
+            step: 60, min: "00:00", max: "23:59",
+            placeholder: "HH:MM",
+            form: form_dom_id %>
+    </div>
+  </td>
 
-  <td class="border border-gray-300 px-2 py-1 align-top text-right">
-    <%= form_with model: [current_user, a],
-                  id: form_dom_id,
-                  url: save_row_user_attendance_path(current_user, a, format: :turbo_stream),
-                  method: :patch,
-                  data: { turbo: true } do |f| %>
-      <div class="flex gap-2 justify-end">
-        <%= f.submit "保存", class: "px-3 py-1 border rounded bg-emerald-600 text-white" %>
+  <td class="border border-gray-300 px-2 py-1 align-middle text-gray-400 text-center">—</td>
 
-        <!-- ↓↓↓ ここを button_to から link_to に変更（ネストフォームを解消） ↓↓↓ -->
-        <%= link_to "破棄",
-              cancel_row_user_attendance_path(current_user, a, format: :turbo_stream),
-              data: { turbo_stream: true },
-              class: "px-3 py-1 border rounded" %>
-      </div>
+  <td class="border border-gray-300 py-1 align-middle">
+      <div class="flex justify-start items-center gap-x-2 ml-3.5">
+      <%= form_with model: [current_user, a],
+                    id: form_dom_id,
+                    url: save_row_user_attendance_path(current_user, a, format: :turbo_stream),
+                    method: :patch,
+                    data: { turbo: true } do |f| %>
+        <div class="flex gap-2 justify-end">
+          <%= f.submit "保存", class: "px-2 py-0.5 border rounded bg-emerald-600 text-white" %>
 
-      <% if defined?(errors) && errors.present? %>
-        <div class="text-red-600 text-xs mt-1"><%= errors.full_messages.to_sentence %></div>
+          <!-- ↓↓↓ ここを button_to から link_to に変更（ネストフォームを解消） ↓↓↓ -->
+          <%= link_to "破棄",
+                cancel_row_user_attendance_path(current_user, a, format: :turbo_stream),
+                data: { turbo_stream: true },
+                class: "px-2 py-0.5 border rounded bg-gray-500 text-white" %>
+        </div>
+
+        <% if defined?(errors) && errors.present? %>
+          <div class="text-red-600 text-xs mt-1"><%= errors.full_messages.to_sentence %></div>
+        <% end %>
       <% end %>
-    <% end %>
-  </td>
+    </td>
+  </div>
 </tr>
+

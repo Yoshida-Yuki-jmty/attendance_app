@@ -18,11 +18,34 @@
 #
 #  fk_rails_...  (user_id => users.id)
 #
+# spec/factories/attendances.rb
 FactoryBot.define do
   factory :attendance do
-    user { nil }
-    work_date { "2025-09-05" }
-    started_at { "2025-09-05 17:25:26" }
-    finished_at { "2025-09-05 17:25:26" }
+    association :user
+
+    # 既定は 当日 09:00-18:00
+    work_date   { Date.current }
+    started_at  { Time.zone.parse("#{work_date} 09:00") }
+    finished_at { Time.zone.parse("#{work_date} 18:00") }
+
+    trait :no_clock_out do
+      finished_at { nil }
+    end
+
+    trait :with_breaks do
+      # 休憩を2本デフォルトで作る
+      after(:create) do |att|
+        d = att.work_date
+        att.breaktimes.create!(
+          started_at: Time.zone.parse("#{d} 12:00"),
+          finished_at: Time.zone.parse("#{d} 13:00")
+        )
+        att.breaktimes.create!(
+          started_at: Time.zone.parse("#{d} 15:15"),
+          finished_at: Time.zone.parse("#{d} 15:30")
+        )
+      end
+    end
   end
 end
+

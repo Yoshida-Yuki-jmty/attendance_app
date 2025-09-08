@@ -11,7 +11,8 @@
 #
 # Indexes
 #
-#  index_breaktimes_on_attendance_id  (attendance_id)
+#  index_breaktimes_on_attendance_id       (attendance_id)
+#  index_breaktimes_on_attendance_id_open  (attendance_id) UNIQUE WHERE (finished_at IS NULL)
 #
 # Foreign Keys
 #

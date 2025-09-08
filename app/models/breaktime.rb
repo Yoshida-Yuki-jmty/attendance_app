@@ -11,7 +11,8 @@
 #
 # Indexes
 #
-#  index_breaktimes_on_attendance_id  (attendance_id)
+#  index_breaktimes_on_attendance_id       (attendance_id)
+#  index_breaktimes_on_attendance_id_open  (attendance_id) UNIQUE WHERE (finished_at IS NULL)
 #
 # Foreign Keys
 #
@@ -20,13 +21,16 @@
 class Breaktime < ApplicationRecord
   belongs_to :attendance
   validate :finished_after_started
+  validate :only_one_open_break, if: -> { finished_at.nil? }
 
-  scope :opened, -> { where(finished_at: nil) }
+  scope :opened, -> { where(finished_at: nil).order(:started_at) }
 
   def self.start_break_for!(attendance, now = Time.zone.now)
     raise StandardError, "退勤済みです" if attendance.finished_at.present?
-    raise StandardError, "すでに休憩中です" if attendance.breaktimes.opened.exists?
-    attendance.breaktimes.create!(started_at: now)
+    attendance.with_lock do
+      raise StandardError, "すでに休憩中です" if attendance.breaktimes.opened.exists?
+      attendance.breaktimes.create!(started_at: now)
+    end
   end
 
   # def self.finish_break_for!(attendance, now = Time.zone.now)
@@ -40,5 +44,11 @@ class Breaktime < ApplicationRecord
   def finished_after_started
     return unless started_at && finished_at
     errors.add(:finished_at, "は休憩開始以降にしてください") if finished_at < started_at
+  end
+
+  def only_one_open_break
+    if attendance.breaktimes.where(finished_at: nil).where.not(id: id).exists?
+      errors.add(:base, "すでに休憩中です")
+    end
   end
 end

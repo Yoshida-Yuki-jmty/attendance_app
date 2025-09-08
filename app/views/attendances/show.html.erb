@@ -1,67 +1,87 @@
 <h1 class="text-xl font-bold mb-4">本日の日報</h1>
 
+<% d = (@today&.work_date || Attendance.business_date(Time.zone.now)) %>
+<p class="mb-3 text-right text-gray-600">
+  今日は <%= d.strftime("%-m月%-d日") %>（<%= %w(日 月 火 水 木 金 土)[d.wday] %>）です。
+</p>
+
+<p class="mb-2">
+  現在状況：<%= attendance_status_badge(@today, @opened_break) %>
+</p>
+
+<% dis_in   = attendance_button_disabled?(:clock_in,  @today, @opened_break) %>
+<% dis_out  = attendance_button_disabled?(:clock_out, @today, @opened_break) %>
+<% dis_bs   = attendance_button_disabled?(:break_start, @today, @opened_break) %>
+<% dis_be   = attendance_button_disabled?(:break_end,   @today, @opened_break) %>
+
 <div class="mb-3 flex gap-2">
-  <%= button_to "出勤", user_attendance_path(@today), method: :post, class: "px-3 py-1 border rounded" %>
+  <%= button_to "出勤",
+        user_attendance_path(current_user),
+        method: :post,
+        disabled: dis_in,
+        class: button_ui_class(dis_in) %>
 
   <%= button_to "退勤",
-        (@today ? user_attendance_path(@today) : "#"),
+        (@today ? user_attendance_path(current_user) : "#"),
         method: :patch,
-        disabled: @today.nil?,
-        class: "px-3 py-1 border rounded #{'opacity-50 cursor-not-allowed' if @today.nil?}" %>
+        disabled: dis_out,
+        class: button_ui_class(dis_out) %>
 
   <%= button_to "休憩開始",
         user_breaktimes_path(current_user),
         method: :post,
-        disabled: @today.nil? || @opened_break.present?,
-        class: "px-3 py-1 border rounded #{'opacity-50 cursor-not-allowed' if @today.nil? || @opened_break.present?}" %>
+        disabled: dis_bs,
+        class: button_ui_class(dis_bs) %>
 
   <%= button_to "休憩終了",
-        (@opened_break ? user_breaktimes_path(@opened_break) : "#"),
+        (@opened_break ? user_breaktime_path(current_user, @opened_break) : "#"),
         method: :patch,
-        disabled: @opened_break.blank?,
-        class: "px-3 py-1 border rounded #{'opacity-50 cursor-not-allowed' if @opened_break.blank?}" %>
+        disabled: dis_be,
+        class: button_ui_class(dis_be) %>
 </div>
 
-<% if @today.present? %>
-  <table class="w-full border text-sm">
-    <thead class="bg-gray-100">
-      <tr>
-        <th class="border px-2 py-1">日付</th>
-        <th class="border px-2 py-1">出勤</th>
-        <th class="border px-2 py-1">退勤</th>
-        <th class="border px-2 py-1">休憩（開始-終了）</th>
-        <th class="border px-2 py-1">休憩合計</th>
-        <th class="border px-2 py-1">実働</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="border px-2 py-1"><%= @today.work_date %></td>
-        <td class="border px-2 py-1"><%= hm(@today.started_at) %></td>
-        <td class="border px-2 py-1"><%= hm(@today.finished_at) %></td>
-        <td class="border px-2 py-1">
-          <% if @today.breaktimes.any? %>
-            <% @today.breaktimes.order(:started_at).each do |bt| %>
-              <div><%= [hm(bt.started_at), hm(bt.finished_at)].compact.join(" - ") %></div>
-            <% end %>
-          <% else %>
-            -
+<table class="w-full border text-sm">
+  <thead class="bg-gray-100">
+    <tr>
+      <th class="border px-2 py-1">出勤</th>
+      <th class="border px-2 py-1">退勤</th>
+      <th class="border px-2 py-1">休憩（開始-終了）</th>
+      <th class="border px-2 py-1">休憩合計</th>
+      <th class="border px-2 py-1">実働</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="border px-2 py-1"><%= @today&.started_at ? hm(@today.started_at) : "-" %></td>
+      <td class="border px-2 py-1"><%= @today&.finished_at ? hm(@today.finished_at) : "-" %></td>
+      <td class="border px-2 py-1">
+        <% if @today&.breaktimes.any? %>
+          <% @today.breaktimes.order(:started_at).each do |bt| %>
+            <div><%= [hm(bt.started_at), hm(bt.finished_at)].compact.join(" - ") %></div>
           <% end %>
-        </td>
-        <td class="border px-2 py-1">
+        <% else %>
+          -
+        <% end %>
+      </td>
+      <td class="border px-2 py-1">
+        <% if @today %>
           <% bs = @today.break_seconds %>
-          <%= bs > 0 ? Time.at(bs).utc.strftime("%H:%M") : "-" %>
-        </td>
-        <td class="border px-2 py-1">
+          <%= bs.positive? ? Time.at(bs).utc.strftime("%H:%M") : "-" %>
+        <% else %>
+          -
+        <% end %>
+      </td>
+      <td class="border px-2 py-1">
+        <% if @today %>
           <% ws = @today.worked_seconds %>
-          <%= ws > 0 ? Time.at(ws).utc.strftime("%H:%M") : "-" %>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-<% else %>
-  <p class="text-gray-600">本日の出勤は未登録です。</p>
-<% end %>
+          <%= ws.positive? ? Time.at(ws).utc.strftime("%H:%M") : "-" %>
+        <% else %>
+          -
+        <% end %>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 <div class="mt-4 flex justify-end">
   <%= link_to "今月の月報を見る", user_attendances_path(current_user), class: "text-blue-700 underline" %>

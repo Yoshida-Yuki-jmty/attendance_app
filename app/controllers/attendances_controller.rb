@@ -27,7 +27,6 @@ class AttendancesController < ApplicationController
     bizdate       = Attendance.business_date(Time.zone.now)
     @today        = current_user.attendances.includes(:breaktimes).find_by(work_date: bizdate)
     @opened_break = @today&.breaktimes&.opened&.first
-    @user         = current_user
   end
 
   def update

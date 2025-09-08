@@ -1,0 +1,47 @@
+<% form_dom_id = "#{dom_id(a)}-form" %>
+
+<tr id="<%= dom_id(a) %>" class="bg-amber-50">
+  <td class="border px-2 py-1 align-top"><%= d %></td>
+  <td class="border px-2 py-1 align-top">編集中</td>
+
+  <td class="border px-2 py-1 align-top">
+    <%= time_field_tag "attendance[started_at_hm]",
+          a.started_at&.in_time_zone&.strftime("%H:%M"),
+          class: "border rounded px-2 py-1 w-28",
+          placeholder: "HH:MM",
+          form: form_dom_id %>
+  </td>
+
+  <td class="border px-2 py-1 align-top">
+    <%= time_field_tag "attendance[finished_at_hm]",
+          a.finished_at&.in_time_zone&.strftime("%H:%M"),
+          class: "border rounded px-2 py-1 w-28",
+          placeholder: "HH:MM",
+          form: form_dom_id %>
+  </td>
+
+  <td class="border px-2 py-1 align-top text-gray-400">—</td>
+  <td class="border px-2 py-1 align-top text-gray-400">—</td>
+
+  <td class="border px-2 py-1 align-top text-right">
+    <%= form_with model: [current_user, a],
+                  id: form_dom_id,
+                  url: save_row_user_attendance_path(current_user, a, format: :turbo_stream),
+                  method: :patch,
+                  data: { turbo: true } do |f| %>
+      <div class="flex gap-2 justify-end">
+        <%= f.submit "保存", class: "px-3 py-1 border rounded bg-emerald-600 text-white" %>
+
+        <!-- ↓↓↓ ここを button_to から link_to に変更（ネストフォームを解消） ↓↓↓ -->
+        <%= link_to "破棄",
+              cancel_row_user_attendance_path(current_user, a, format: :turbo_stream),
+              data: { turbo_stream: true },
+              class: "px-3 py-1 border rounded" %>
+      </div>
+
+      <% if defined?(errors) && errors.present? %>
+        <div class="text-red-600 text-xs mt-1"><%= errors.full_messages.to_sentence %></div>
+      <% end %>
+    <% end %>
+  </td>
+</tr>

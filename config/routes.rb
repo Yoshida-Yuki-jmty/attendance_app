@@ -4,8 +4,17 @@ Rails.application.routes.draw do
 
   resources :users do
     resource  :attendance,  only: [:show, :create, :update], controller: "attendances"
-    resources :attendances, only: [:index],                  controller: "attendances"
-    resources :breaktimes,  only: [:create, :update],         controller: "breaktimes"
+    resources :attendances, only: [:index],                  controller: "attendances" do
+      member do
+        get   :edit_row
+        patch :save_row
+        get   :cancel_row
+      end
+      collection do
+      post  :build_row
+    end
+    end
+    resources :breaktimes,  only: [:create, :update]
   end
 
   resource  :session,     only: [:new, :create, :destroy]

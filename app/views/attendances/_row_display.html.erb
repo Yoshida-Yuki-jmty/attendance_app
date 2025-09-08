@@ -1,0 +1,56 @@
+<!-- app/views/attendances/_row_display.html.erb -->
+<% row_id = a ? dom_id(a) : "attendance-#{d.strftime('%Y%m%d')}" %>
+<tr id="<%= row_id %>">
+  <td class="border px-2 py-1"><%= d %></td>
+
+  <% status =
+      if a.nil?
+        (d <= @today ? "未登録" : "—")
+      elsif a.finished_at.present?
+        "退勤済み"
+      elsif a.started_at.present?
+        "出勤済み"
+      else
+        "未登録"
+      end %>
+  <td class="border px-2 py-1"><%= status %></td>
+
+  <td class="border px-2 py-1"><%= a&.started_at ? hm(a.started_at)  : "-" %></td>
+  <td class="border px-2 py-1"><%= a&.finished_at ? hm(a.finished_at) : "-" %></td>
+
+  <td class="border px-2 py-1">
+    <% if a %>
+      <% bs = a.break_seconds %>
+      <%= bs.positive? ? Time.at(bs).utc.strftime("%H:%M") : "-" %>
+    <% else %>
+      -
+    <% end %>
+  </td>
+
+  <td class="border px-2 py-1">
+    <% if a %>
+      <% ws = a.worked_seconds %>
+      <%= ws.positive? ? Time.at(ws).utc.strftime("%H:%M") : "-" %>
+    <% else %>
+      -
+    <% end %>
+  </td>
+
+  <td class="border px-2 py-1 text-right">
+    <% if a %>
+      <!-- 既存レコードは edit_row（member） -->
+      <%= button_to "編集",
+          edit_row_user_attendance_path(current_user, a, format: :turbo_stream),
+          method: :get,
+          form: { data: { turbo: true } },
+          class: "px-3 py-1 border rounded text-blue-700" %>
+    <% else %>
+    <!-- 未登録日は build_row（collection, POST）で作ってから編集 -->
+      <%= button_to "編集",
+          build_row_user_attendances_path(current_user, date: d, format: :turbo_stream),
+          method: :post,
+          form: { data: { turbo: true } },
+          class: "px-3 py-1 border rounded text-blue-700" %>
+    <% end %>
+  </td>
+</tr>

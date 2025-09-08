@@ -235,6 +235,9 @@ GEM
       sprockets (>= 3.0.0)
     thor (1.4.0)
     timeout (0.4.3)
+    turbo-rails (2.0.12)
+      actionpack (>= 6.0.0)
+      railties (>= 6.0.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
     unicode-display_width (3.1.5)
@@ -270,6 +273,7 @@ DEPENDENCIES
   rubocop-rails
   rubocop-rspec
   sprockets-rails (~> 3.5)
+  turbo-rails
 
 RUBY VERSION
    ruby 3.1.2p20

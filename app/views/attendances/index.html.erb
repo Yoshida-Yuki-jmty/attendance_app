@@ -20,44 +20,13 @@
       <th class="border px-2 py-1">退勤</th>
       <th class="border px-2 py-1">休憩合計</th>
       <th class="border px-2 py-1">実働</th>
+      <th class="border px-2 py-1">修正</th>
     </tr>
   </thead>
   <tbody>
     <% @days.each do |d| %>
       <% a = @att_by_date[d] %>
-      <% past_or_today = (d <= @today) %>
-      <% status =
-           if a.nil?
-             past_or_today ? "未登録" : "—"
-           elsif a.finished_at.present?
-             "退勤済み"
-           elsif a.started_at.present?
-             "出勤済み"
-           else
-             "未登録"
-           end %>
-      <tr class="<%= 'opacity-60' unless past_or_today %>">
-        <td class="border px-2 py-1"><%= d %></td>
-        <td class="border px-2 py-1"><%= status %></td>
-        <td class="border px-2 py-1"><%= a ? hm(a.started_at)  : "-" %></td>
-        <td class="border px-2 py-1"><%= a ? hm(a.finished_at) : "-" %></td>
-        <td class="border px-2 py-1">
-          <% if a %>
-            <% bs = a.break_seconds %>
-            <%= bs > 0 ? Time.at(bs).utc.strftime("%H:%M") : "-" %>
-          <% else %>
-            -
-          <% end %>
-        </td>
-        <td class="border px-2 py-1">
-          <% if a %>
-            <% ws = a.worked_seconds %>
-            <%= ws > 0 ? Time.at(ws).utc.strftime("%H:%M") : "-" %>
-          <% else %>
-            -
-          <% end %>
-        </td>
-      </tr>
+      <%= render "attendances/row_display", a: a, d: d %>
     <% end %>
   </tbody>
 </table>

@@ -60,7 +60,9 @@ class Attendance < ApplicationRecord
   # 退勤打刻（5:00跨ぎなら翌日分を自動追加）
   def self.clock_out!(user, now = Time.zone.now)
     biz = business_date(now)
-    att = user.attendances.find_by(work_date: biz)
+    att = user.attendances.find_by(work_date: biz)||
+          user.attendances.find_by(work_date: biz - 1)
+
     raise NoClockInError, I18n.t("attendances.errors.no_clock_in") if att.nil?
 
     cutoff_end = Time.zone.local(
@@ -71,12 +73,18 @@ class Attendance < ApplicationRecord
     ) + 1.day
 
     if now < cutoff_end
+      if (bt = att.breaktimes.opened.first)
+        bt.update!(finished_at: now)
+      end
       att.update!(finished_at: now)
       return att
     end
 
     # 5:00 を跨ぐ場合 → 分割保存
     Attendance.transaction do
+      if (bt = att.breaktimes.opened.first)
+        bt.update!(finished_at: cutoff_end)
+      end
       if att.finished_at.blank? || att.finished_at < cutoff_end
         att.update!(finished_at: cutoff_end)
       end

@@ -1,6 +1,6 @@
 class SessionsController < ApplicationController
   def new
-    redirect_to user_path(current_user) if logged_in?
+    redirect_to user_attendance_path(current_user) if logged_in?
   end
 
   def create
@@ -17,11 +17,5 @@ class SessionsController < ApplicationController
   def destroy
     log_out
     redirect_to new_session_path, notice: 'ログアウトしました'
-  end
-
-  private
-
-  def no_store!
-    response.headers['Cache-Control'] = 'no-store'
   end
 end

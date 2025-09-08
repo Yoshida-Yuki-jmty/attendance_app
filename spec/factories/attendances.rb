@@ -31,6 +31,11 @@ FactoryBot.define do
     trait :no_clock_out do
       finished_at { nil }
     end
+  
+    trait :finished do
+      finished_at { Time.zone.parse("#{work_date} 18:00") }
+    end
+
 
     trait :with_breaks do
       # 休憩を2本デフォルトで作る

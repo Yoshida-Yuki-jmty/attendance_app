@@ -12,7 +12,7 @@ Rails.application.routes.draw do
       end
       collection do
       post  :build_row
-    end
+      end
     end
     resources :breaktimes,  only: [:create, :update]
   end

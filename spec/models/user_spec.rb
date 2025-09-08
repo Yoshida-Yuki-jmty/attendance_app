@@ -16,5 +16,47 @@
 require 'rails_helper'
 
 RSpec.describe User, type: :model do
-  pending "add some examples to (or delete) #{__FILE__}"
+  it "有効なファクトリを持つ" do
+    expect(build(:user)).to be_valid
+  end
+
+describe "バリデーション" do
+    it "name は必須" do
+      u = build(:user, name: "")
+      expect(u).to be_invalid
+      expect(u.errors[:name]).to be_present
+    end
+
+    it "email は必須" do
+      u = build(:user, email: "")
+      expect(u).to be_invalid
+      expect(u.errors[:email]).to be_present
+    end
+
+    it "メールはユニーク（大文字小文字を正規化）" do
+      create(:user, email: "foo@example.com")
+      expect {
+        create(:user, email: "Foo@Example.com")
+      }.to raise_error(ActiveRecord::RecordNotUnique)
+    end
+
+    it "保存時にメールが小文字化される" do
+      u = create(:user, email: "Foo@Example.com")
+      expect(u.reload.email).to eq("foo@example.com")
+    end
+
+    it "パスワードは8文字以上" do
+      u = build(:user, password: "short", password_confirmation: "short")
+      expect(u).to be_invalid
+      expect(u.errors[:password]).to be_present
+    end
+  end
+
+  describe "has_secure_password" do
+    it "正しいパスワードで認証できる" do
+      u = create(:user, password: "password123", password_confirmation: "password123")
+      expect(u.authenticate("password123")).to be_truthy
+      expect(u.authenticate("wrong")).to be_falsey
+    end
+  end
 end

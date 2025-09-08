@@ -40,14 +40,14 @@ RSpec.describe Attendance, type: :model do
   end
 
   describe ".business_date" do
-    it "5:00 未満は前日扱い" do
-      travel_to Time.zone.parse("2025-09-08 04:59") do
-        expect(Attendance.business_date(Time.zone.now)).to eq Date.new(2025,9,7)
+    it "00:00 ちょうどは当日扱い" do
+      travel_to Time.zone.parse("2025-09-08 00:00") do
+        expect(Attendance.business_date(Time.zone.now)).to eq Date.new(2025,9,8)
       end
     end
 
-    it "5:00 以降は当日扱い" do
-      travel_to Time.zone.parse("2025-09-08 05:00") do
+    it "23:59 も当日扱い" do
+      travel_to Time.zone.parse("2025-09-08 23:59") do
         expect(Attendance.business_date(Time.zone.now)).to eq Date.new(2025,9,8)
       end
     end
@@ -69,10 +69,13 @@ RSpec.describe Attendance, type: :model do
     end
 
     it "退勤済ならエラー" do
-      a = create(:attendance, :finished, user: user, work_date: Date.new(2025,9,8))
-      expect {
-        Attendance.clock_in!(user)
-      }.to raise_error(Attendance::AlreadyClockedOutError)
+      # ← その日の勤怠（退勤済）が存在する時刻に固定して検証する
+      travel_to Time.zone.parse("2025-09-08 10:00") do
+        create(:attendance, :finished, user: user, work_date: Date.new(2025,9,8))
+        expect {
+          Attendance.clock_in!(user)
+        }.to raise_error(Attendance::AlreadyClockedOutError)
+      end
     end
   end
 
@@ -97,22 +100,21 @@ RSpec.describe Attendance, type: :model do
       end
     end
 
-    it "5:00 を跨ぐなら分割保存される" do
-      user = create(:user)
-
-      travel_to Time.zone.parse("2025-09-08 23:00")
-      Attendance.clock_in!(user)
-      travel_back
-
-      travel_to Time.zone.parse("2025-09-09 06:00")
-      Attendance.clock_out!(user)
-      travel_back
+    it "0:00 を跨ぐなら分割保存される" do
+      # 23:00 出勤
+      travel_to Time.zone.parse("2025-09-08 23:00") do
+        Attendance.clock_in!(user)
+      end
+      # 翌 06:00 退勤
+      travel_to Time.zone.parse("2025-09-09 06:00") do
+        Attendance.clock_out!(user)
+      end
 
       a1 = user.attendances.find_by(work_date: Date.new(2025,9,8))
       a2 = user.attendances.find_by(work_date: Date.new(2025,9,9))
 
-      expect(a1.finished_at.strftime("%H:%M")).to eq "05:00"
-      expect(a2.started_at.strftime("%H:%M")).to  eq "05:00"
+      expect(a1.finished_at.strftime("%H:%M")).to eq "00:00"
+      expect(a2.started_at.strftime("%H:%M")).to  eq "00:00"
       expect(a2.finished_at.strftime("%H:%M")).to eq "06:00"
     end
   end

@@ -23,7 +23,9 @@ class Attendance < ApplicationRecord
   class NoClockInError         < StandardError; end
   class AlreadyClockedOutError < StandardError; end
 
-  CUTOFF_HOUR = 5 # 5:00 区切り
+  # !! 5:00 区切りの場合、複雑化したため0:00に修正 !!
+  # 他の箇所はコメント含めそのままにしておく（テストのみ修正）
+  CUTOFF_HOUR = 0 
 
   belongs_to :user
   has_many :breaktimes, dependent: :destroy

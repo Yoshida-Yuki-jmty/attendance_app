@@ -4,7 +4,17 @@ class AttendancesController < ApplicationController
   before_action :require_login
 
   def index
-    @month  = (params[:month] ? Date.parse(params[:month]) : Date.current).beginning_of_month
+    raw = params[:month].presence
+    @month =
+      if raw
+        if raw.match?(/\A\d{4}-\d{2}\z/)
+          Date.strptime(raw, "%Y-%m")
+        else
+          Date.parse(raw)
+        end.beginning_of_month
+      else
+        Date.current.beginning_of_month
+      end
     @today  = Attendance.business_date(Time.zone.now)
     range   = @month..@month.end_of_month
 

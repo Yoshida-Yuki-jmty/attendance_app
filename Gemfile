@@ -7,6 +7,7 @@ gem 'pg', '~> 1.5'
 gem 'puma', '~> 5.6'
 gem 'rails', '6.1.7.9'
 gem "turbo-rails"
+gem 'holiday_jp', '~> 0.7'
 
 # AssetsPipeline
 gem 'cssbundling-rails', '~> 1.4'

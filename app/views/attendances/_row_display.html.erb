@@ -1,7 +1,12 @@
 <!-- app/views/attendances/_row_display.html.erb -->
 <% row_id = a ? dom_id(a) : "attendance-#{d.strftime('%Y%m%d')}" %>
 <tr id="<%= row_id %>">
-  <td class="border px-2 py-1"><%= d %></td>
+  <td class="border border-gray-300 px-2 py-1 align-middle">
+    <span class="<%= day_color_class(d) %>"><%= jp_md(d) %></span>
+  </td>
+  <td class="border border-gray-300 px-2 py-1 align-middle text-center">
+    <span class="<%= day_color_class(d) %>"><%= jp_wday(d) %></span>
+  </td>
 
   <% status =
       if a.nil?
@@ -13,12 +18,15 @@
       else
         "未登録"
       end %>
-  <td class="border px-2 py-1"><%= status %></td>
 
-  <td class="border px-2 py-1"><%= a&.started_at ? hm(a.started_at)  : "-" %></td>
-  <td class="border px-2 py-1"><%= a&.finished_at ? hm(a.finished_at) : "-" %></td>
+  <td class="border border-gray-300 px-2 py-1 align-middle">
+    <div class="flex items-center justify-center"><%= status %></div>
+  </td>
 
-  <td class="border px-2 py-1">
+  <td class="border border-gray-300 px-2 py-1 align-middle"><%= a&.started_at ? hm(a.started_at)  : "-" %></td>
+  <td class="border border-gray-300 px-2 py-1 align-middle"><%= a&.finished_at ? hm(a.finished_at) : "-" %></td>
+
+  <td class="border border-gray-300 px-2 py-1 align-middle">
     <% if a %>
       <% bs = a.break_seconds %>
       <%= bs.positive? ? Time.at(bs).utc.strftime("%H:%M") : "-" %>
@@ -27,7 +35,7 @@
     <% end %>
   </td>
 
-  <td class="border px-2 py-1">
+  <td class="border border-gray-300 px-2 py-1 align-middle">
     <% if a %>
       <% ws = a.worked_seconds %>
       <%= ws.positive? ? Time.at(ws).utc.strftime("%H:%M") : "-" %>
@@ -36,7 +44,7 @@
     <% end %>
   </td>
 
-  <td class="border px-2 py-1 text-right">
+  <td class="border border-gray-300 px-2 py-1 align-middle text-right">
     <% if a %>
       <!-- 既存レコードは edit_row（member） -->
       <%= button_to "編集",

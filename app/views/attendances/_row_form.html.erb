@@ -1,10 +1,17 @@
 <% form_dom_id = "#{dom_id(a)}-form" %>
 
 <tr id="<%= dom_id(a) %>" class="bg-amber-50">
-  <td class="border px-2 py-1 align-top"><%= d %></td>
-  <td class="border px-2 py-1 align-top">編集中</td>
+  <td class="border border-gray-300 px-2 py-1 align-middle">
+    <span class="<%= day_color_class(d) %>"><%= jp_md(d) %></span>
+  </td>
+  <td class="border border-gray-300 px-2 py-1 align-middle text-center">
+    <span class="<%= day_color_class(d) %>"><%= jp_wday(d) %></span>
+  </td>
+  <td class="border border-gray-300 px-2 py-1 align-middle">
+    <div class="flex items-center justify-center">編集中</div>
+  </td>
 
-  <td class="border px-2 py-1 align-top">
+  <td class="border border-gray-300 px-2 py-1 align-middle">
     <%= time_field_tag "attendance[started_at_hm]",
           a.started_at&.in_time_zone&.strftime("%H:%M"),
           class: "border rounded px-2 py-1 w-28",
@@ -12,7 +19,7 @@
           form: form_dom_id %>
   </td>
 
-  <td class="border px-2 py-1 align-top">
+  <td class="border border-gray-300 px-2 py-1 align-middle">
     <%= time_field_tag "attendance[finished_at_hm]",
           a.finished_at&.in_time_zone&.strftime("%H:%M"),
           class: "border rounded px-2 py-1 w-28",
@@ -20,10 +27,10 @@
           form: form_dom_id %>
   </td>
 
-  <td class="border px-2 py-1 align-top text-gray-400">—</td>
-  <td class="border px-2 py-1 align-top text-gray-400">—</td>
+  <td class="border border-gray-300 px-2 py-1 align-middle text-gray-400">—</td>
+  <td class="border border-gray-300 px-2 py-1 align-middle text-gray-400">—</td>
 
-  <td class="border px-2 py-1 align-top text-right">
+  <td class="border border-gray-300 px-2 py-1 align-top text-right">
     <%= form_with model: [current_user, a],
                   id: form_dom_id,
                   url: save_row_user_attendance_path(current_user, a, format: :turbo_stream),

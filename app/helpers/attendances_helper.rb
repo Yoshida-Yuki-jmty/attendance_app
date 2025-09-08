@@ -51,4 +51,25 @@ module AttendancesHelper
   def button_ui_class(disabled)
     "px-3 py-1 border rounded #{'opacity-50 cursor-not-allowed' if disabled}"
   end
+
+  def jp_md(date)
+    date&.strftime("%-m月%-d日")
+  end
+
+  def jp_wday(date)
+    %w(日 月 火 水 木 金 土)[date.wday]
+  end
+
+  # 祝日 or 日曜なら赤、土曜は青
+  def holiday?(date)
+    sunday = date.wday == 0
+    pub_holiday = defined?(HolidayJp) && HolidayJp.holiday?(date)
+    sunday || pub_holiday
+  end
+
+  def day_color_class(date)
+    return "text-red-600"  if holiday?(date)
+    return "text-blue-600" if date.wday == 6
+    "text-gray-700"
+  end
 end

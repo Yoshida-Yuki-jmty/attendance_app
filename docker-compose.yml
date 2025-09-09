@@ -1,0 +1,44 @@
+services:
+  db:
+    build:
+      context: .
+      dockerfile: dockerfiles/dev/postgresql/Dockerfile
+    container_name: attendance-db
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: ${PG_DB}
+      TZ: Asia/Tokyo
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USER} -d ${PG_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      dockerfile: dockerfiles/dev/rails/Dockerfile
+    container_name: attendance-web
+    env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      # 開発で master.key が必要なら（未設定ならスキップ）
+      # RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - bundle_cache:/usr/local/bundle
+
+volumes:
+  pgdata:
+  bundle_cache:

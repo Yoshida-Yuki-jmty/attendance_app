@@ -22,13 +22,20 @@
 /storage/*
 !/storage/.keep
 
-/public/assets
 .byebug_history
 
-# Ignore master key for decrypting credentials and more.
-/config/master.key
 
+
+# 秘匿情報
+/config/master.key
+.env
+.git
+
+# Assets 関連
 /app/assets/builds/*
 !/app/assets/builds/.keep
+/public/assets
 
+# パッケージ関連
+vendor/bundle
 /node_modules

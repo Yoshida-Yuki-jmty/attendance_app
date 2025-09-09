@@ -30,9 +30,9 @@ RSpec.describe "Attendances", type: :request do
   describe "Turbo row editing" do
     before { sign_in(user) }
 
-    it "edit_row: turbo-stream が返る" do
+    it "edit: turbo-stream が返る" do
       a = create(:attendance, :finished, user: user, work_date: Date.new(2025,9,1))
-      get edit_row_user_attendance_path(user, a, format: :turbo_stream)
+      get edit_user_attendance_path(user, a, format: :turbo_stream)
       expect(response.media_type).to eq Mime[:turbo_stream]
       expect(response.body).to include(%(action="replace"))
       expect(response.body).to include(%(id="#{ActionView::RecordIdentifier.dom_id(a)}"))
@@ -40,7 +40,7 @@ RSpec.describe "Attendances", type: :request do
 
     it "save_row: 時刻を更新して turbo-stream で行を差し替え" do
       a = create(:attendance, user: user, work_date: Date.new(2025,9,1), started_at: Time.zone.parse("2025-09-01 09:00"))
-      patch save_row_user_attendance_path(user, a, format: :turbo_stream),
+      patch user_attendance_path(user, a, format: :turbo_stream),
             params: { attendance: { started_at_hm: "10:00", finished_at_hm: "18:00" } }
       expect(response.media_type).to eq Mime[:turbo_stream]
       a.reload
@@ -52,7 +52,7 @@ RSpec.describe "Attendances", type: :request do
 
     it "build_row: 未登録日でもフォーム表示できる" do
       date = Date.new(2025,9,2)
-      post build_row_user_attendances_path(user, format: :turbo_stream), params: { date: date.to_s }
+      post user_attendances_path(user, format: :turbo_stream), params: { date: date.to_s }
       expect(response.media_type).to eq Mime[:turbo_stream]
       expect(response.body).to include(%(target="attendance-#{date.strftime('%Y%m%d')}"))
       expect(response.body).to include(%(<tr id="attendance_))

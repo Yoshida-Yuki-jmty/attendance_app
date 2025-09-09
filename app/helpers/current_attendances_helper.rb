@@ -1,0 +1,2 @@
+module CurrentAttendancesHelper
+end

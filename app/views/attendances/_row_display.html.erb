@@ -32,7 +32,7 @@
       <% if a %>
         <!-- 既存レコードは edit_row（member） -->
         <%= button_to "編集",
-            edit_row_user_attendance_path(current_user, a, format: :turbo_stream),
+            edit_user_attendance_path(current_user, a, format: :turbo_stream),
             method: :get,
             form: { data: { turbo: true } },
             class: "px-2 py-0.5 border rounded text-blue-700" %>
@@ -44,7 +44,7 @@
       <% else %>
       <!-- 未登録日は build_row（collection, POST）で作ってから編集 -->
         <%= button_to "編集",
-            build_row_user_attendances_path(current_user, date: d, format: :turbo_stream),
+            user_attendances_path(current_user, date: d, format: :turbo_stream),
             method: :post,
             form: { data: { turbo: true } },
             class: "px-2 py-0.5 border rounded text-blue-700" %>

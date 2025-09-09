@@ -2,6 +2,7 @@ class AttendancesController < ApplicationController
   include ActionView::RecordIdentifier
 
   before_action :require_login
+  before_action :set_attendance, only: [:edit, :update, :cancel_row, :destroy]
 
   def index
     raw = params[:month].presence
@@ -26,43 +27,32 @@ class AttendancesController < ApplicationController
     @days = range.to_a
   end
 
-  def create
-    Attendance.clock_in!(current_user)
-    redirect_to root_path, notice: t("attendances.notices.clocked_in")
-  rescue Attendance::AlreadyClockedOutError, Attendance::AlreadyClockedInError => e
-    redirect_to root_path, alert: e.message
-  rescue ActiveRecord::RecordInvalid => e
-    redirect_to root_path, alert: e.record.errors.full_messages.to_sentence
-  end
+  # def create
+  #   Attendance.clock_in!(current_user)
+  #   redirect_to root_path, notice: t("attendances.notices.clocked_in")
+  # rescue Attendance::AlreadyClockedOutError => e
+  #   redirect_to root_path, alert: e.message
+  # rescue ActiveRecord::RecordInvalid => e
+  #   redirect_to root_path, alert: e.record.errors.full_messages.to_sentence
+  # end
 
-  def show
-    bizdate       = Attendance.business_date(Time.zone.now)
-    @today        = current_user.attendances.includes(:breaktimes).find_or_initialize_by(work_date: bizdate)
-    @opened_break = @today&.breaktimes&.opened&.first
-  end
+  # def show
+  #   bizdate       = Attendance.business_date(Time.zone.now)
+  #   @today        = current_user.attendances.includes(:breaktimes).find_or_initialize_by(work_date: bizdate)
+  #   @opened_break = @today&.breaktimes&.opened&.first
+  # end
 
-  def update
-    Attendance.clock_out!(current_user)
-    redirect_to root_path, notice: t("attendances.notices.clocked_out")
-  rescue Attendance::NoClockInError => e
-    redirect_to root_path, alert: e.message
-  rescue ActiveRecord::RecordInvalid => e
-    redirect_to root_path, alert: e.record.errors.full_messages.to_sentence
-  end
-
-
-  # 既存レコードの編集
-  def edit_row
-    @attendance = current_user.attendances.find(params[:id])
-    render turbo_stream: turbo_stream.replace(
-      dom_id(@attendance),
-      partial: "attendances/row_form",
-      locals: { a: @attendance, d: @attendance.work_date }
-    )
-  end
+  # def update
+  #   Attendance.clock_out!(current_user)
+  #   redirect_to root_path, notice: t("attendances.notices.clocked_out")
+  # rescue Attendance::NoClockInError => e
+  #   redirect_to root_path, alert: e.message
+  # rescue ActiveRecord::RecordInvalid => e
+  #   redirect_to root_path, alert: e.record.errors.full_messages.to_sentence
+  # end
 
   # 未登録日の編集開始：その日のレコードを作ってフォームに
-  def build_row
+  def create
     date = Date.parse(params[:date])
     @attendance = current_user.attendances.find_or_create_by!(work_date: date)
 
@@ -76,17 +66,24 @@ class AttendancesController < ApplicationController
     )
   end
 
-  def save_row
-    @attendance = current_user.attendances.find(params[:id])
+  # 既存レコードの編集
+  def edit
+    render turbo_stream: turbo_stream.replace(
+      dom_id(@attendance),
+      partial: "attendances/row_form",
+      locals: { a: @attendance, d: @attendance.work_date }
+    )
+  end
 
+  def update
     attrs = row_params.to_h
     # 時刻のみのパラメータを日付と合成
-    started_hm  = params.dig(:attendance, :started_at_hm)
-    finished_hm = params.dig(:attendance, :finished_at_hm)
+    started_hm     = params.dig(:attendance, :started_at_hm)
+    finished_hm    = params.dig(:attendance, :finished_at_hm)
     break_total_hm = params.dig(:attendance, :break_total_hm)
 
-    attrs[:started_at]  = build_dt(@attendance.work_date, started_hm)  if !started_hm.nil?
-    attrs[:finished_at] = build_dt(@attendance.work_date, finished_hm) if !finished_hm.nil?
+    attrs[:started_at]  = build_dt(@attendance.work_date, started_hm)  unless started_hm.nil?
+    attrs[:finished_at] = build_dt(@attendance.work_date, finished_hm) unless finished_hm.nil?
 
     Attendance.transaction do
       @attendance.update!(attrs)
@@ -99,7 +96,7 @@ class AttendancesController < ApplicationController
           raise ActiveRecord::RecordInvalid, @attendance
         end
 
-        # 既存の休憩をすべて置換（合計だけを保持する運用）
+        # 既存の合計休憩時間を置換
         @attendance.breaktimes.destroy_all
 
         if total_seconds > 0
@@ -124,7 +121,12 @@ class AttendancesController < ApplicationController
           turbo_stream.update("flash", partial: "shared/flash")
         ]
       end
-      format.html { redirect_to user_attendances_path(current_user, month: @attendance.work_date.beginning_of_month) }
+      format.html {
+        redirect_to user_attendances_path(
+          current_user, 
+          month: @attendance.work_date.beginning_of_month
+        )
+      }
     end
 
   rescue ActiveRecord::RecordInvalid => e
@@ -141,11 +143,13 @@ class AttendancesController < ApplicationController
         ], status: :unprocessable_entity
       end
       format.html do
-        redirect_to user_attendances_path(current_user), alert: e.record.errors.full_messages.to_sentence
+        redirect_to user_attendances_path(current_user),
+        alert: e.record.errors.full_messages.to_sentence
       end
     end
   end
 
+  # フォーム編集の破棄
   def cancel_row
     @attendance = current_user.attendances.find(params[:id])
     date  = @attendance.work_date
@@ -153,13 +157,12 @@ class AttendancesController < ApplicationController
 
     # 編集開始時に新規作成しただけで空のままなら削除して未登録表示に戻す
     if @attendance.started_at.blank? && @attendance.finished_at.blank? && @attendance.breaktimes.blank?
-      # 置換ターゲットは今の <tr id="dom_id(@attendance)">
       target_id = dom_id(@attendance)
       @attendance.destroy
       return render turbo_stream: turbo_stream.replace(
         target_id,
         partial: "attendances/row_display",
-        locals: { a: nil, d: date, today: @today } # ← 未登録表示に戻す
+        locals: { a: nil, d: date, today: @today }
       )
     end
 
@@ -186,6 +189,10 @@ def destroy
 end
 
   private
+
+  def set_attendance
+    @attendance = current_user.attendances.find(params[:id])
+  end
 
   def row_params
     params.require(:attendance).permit(:started_at, :finished_at)

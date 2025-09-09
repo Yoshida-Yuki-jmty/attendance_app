@@ -50,7 +50,7 @@
       <div class="flex justify-start items-center gap-x-2 ml-3.5">
       <%= form_with model: [current_user, a],
                     id: form_dom_id,
-                    url: save_row_user_attendance_path(current_user, a, format: :turbo_stream),
+                    url: user_attendance_path(current_user, a, format: :turbo_stream),
                     method: :patch,
                     data: { turbo: true } do |f| %>
         <div class="flex gap-2 justify-end">

@@ -27,6 +27,7 @@ services:
     container_name: attendance-web
     env_file: .env
     environment:
+      AUTO_DB_PREPARE: "1"
       DATABASE_URL: ${DATABASE_URL}
       # 開発で master.key が必要なら（未設定ならスキップ）
       # RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}

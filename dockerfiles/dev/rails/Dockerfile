@@ -11,8 +11,7 @@ WORKDIR /app
 
 # Cache - Gemをインストール
 COPY Gemfile Gemfile.lock ./
-RUN bundle config set without 'development test' \
-    && bundle install --jobs 4
+RUN bundle install --jobs 4 --retry 3
 
 # Cache - JS依存パッケージをインストール
 COPY package.json yarn.lock ./

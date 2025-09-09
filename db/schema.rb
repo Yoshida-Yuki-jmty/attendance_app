@@ -17,11 +17,12 @@ ActiveRecord::Schema.define(version: 2025_09_08_025848) do
 
   create_table "attendances", force: :cascade do |t|
     t.bigint "user_id", null: false
-    t.date "work_date"
+    t.date "work_date", null: false
     t.datetime "started_at"
     t.datetime "finished_at"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.index ["user_id", "work_date"], name: "index_attendances_on_user_id_and_work_date", unique: true
     t.index ["user_id"], name: "index_attendances_on_user_id"
   end
 

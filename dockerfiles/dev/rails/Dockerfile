@@ -3,8 +3,10 @@ FROM ruby:3.1.2
 
 # Node / Yarn / PostgreSQL client 等（Sprockets / jsbundling 前提）
 RUN apt-get update -y && apt-get install -y --no-install-recommends \
-    build-essential curl git libpq-dev nodejs npm postgresql-client \
-    && npm install --global yarn \
+    build-essential curl git gnupg postgresql-client \
+    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
+    && npm install -g yarn@1.22.22 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

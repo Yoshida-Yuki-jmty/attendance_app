@@ -86,37 +86,36 @@ RSpec.describe "Attendances", type: :request do
       expect(response).to redirect_to(root_path)
     end
   end
-describe "GET /users/:user_id/attendances (index)" do
-  it "200 を返す" do
-    sign_in(user)
-    get user_attendances_path(user, month: Date.current.beginning_of_month.to_s)
-    expect(response).to have_http_status(:ok)
+  describe "GET /users/:user_id/attendances (index)" do
+    it "200 を返す" do
+      sign_in(user)
+      get user_attendances_path(user, month: Date.current.beginning_of_month.to_s)
+      expect(response).to have_http_status(:ok)
+    end
   end
-end
 
-describe "GET /users/:user_id/attendance (show)" do
-  it "200 を返す" do
-    sign_in(user)
-    get user_current_attendance_path(user)
-    expect(response).to have_http_status(:ok)
+  describe "GET /users/:user_id/attendance (show)" do
+    it "200 を返す" do
+      sign_in(user)
+      get user_current_attendance_path(user)
+      expect(response).to have_http_status(:ok)
+    end
   end
-end
 
-describe "POST /users/:user_id/attendance (create)" do
-  it "出勤できる" do
-    sign_in(user)
-    post user_current_attendance_path(user)
-    expect(response).to redirect_to(root_path)
+  describe "POST /users/:user_id/attendance (create)" do
+    it "出勤できる" do
+      sign_in(user)
+      post user_current_attendance_path(user)
+      expect(response).to redirect_to(root_path)
+    end
   end
-end
 
-describe "PATCH /users/:user_id/attendance (update)" do
-  it "退勤できる" do
-    sign_in(user)
-    Attendance.clock_in!(user)
-    patch user_current_attendance_path(user)
-    expect(response).to redirect_to(root_path)
+  describe "PATCH /users/:user_id/attendance (update)" do
+    it "退勤できる" do
+      sign_in(user)
+      Attendance.clock_in!(user)
+      patch user_current_attendance_path(user)
+      expect(response).to redirect_to(root_path)
+    end
   end
-end
-
 end

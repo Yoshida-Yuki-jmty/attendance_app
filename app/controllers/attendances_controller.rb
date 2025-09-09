@@ -2,7 +2,7 @@ class AttendancesController < ApplicationController
   include ActionView::RecordIdentifier
 
   before_action :require_login
-  before_action :set_attendance, only: [:edit, :update, :cancel_row, :destroy]
+  before_action :_set_attendance, only: [:edit, :update, :cancel_row, :destroy]
 
   def index
     raw = params[:month].presence
@@ -26,30 +26,6 @@ class AttendancesController < ApplicationController
 
     @days = range.to_a
   end
-
-  # def create
-  #   Attendance.clock_in!(current_user)
-  #   redirect_to root_path, notice: t("attendances.notices.clocked_in")
-  # rescue Attendance::AlreadyClockedOutError => e
-  #   redirect_to root_path, alert: e.message
-  # rescue ActiveRecord::RecordInvalid => e
-  #   redirect_to root_path, alert: e.record.errors.full_messages.to_sentence
-  # end
-
-  # def show
-  #   bizdate       = Attendance.business_date(Time.zone.now)
-  #   @today        = current_user.attendances.includes(:breaktimes).find_or_initialize_by(work_date: bizdate)
-  #   @opened_break = @today&.breaktimes&.opened&.first
-  # end
-
-  # def update
-  #   Attendance.clock_out!(current_user)
-  #   redirect_to root_path, notice: t("attendances.notices.clocked_out")
-  # rescue Attendance::NoClockInError => e
-  #   redirect_to root_path, alert: e.message
-  # rescue ActiveRecord::RecordInvalid => e
-  #   redirect_to root_path, alert: e.record.errors.full_messages.to_sentence
-  # end
 
   # 未登録日の編集開始：その日のレコードを作ってフォームに
   def create
@@ -76,21 +52,21 @@ class AttendancesController < ApplicationController
   end
 
   def update
-    attrs = row_params.to_h
+    attrs = _row_params.to_h
     # 時刻のみのパラメータを日付と合成
     started_hm     = params.dig(:attendance, :started_at_hm)
     finished_hm    = params.dig(:attendance, :finished_at_hm)
     break_total_hm = params.dig(:attendance, :break_total_hm)
 
-    attrs[:started_at]  = build_dt(@attendance.work_date, started_hm)  unless started_hm.nil?
-    attrs[:finished_at] = build_dt(@attendance.work_date, finished_hm) unless finished_hm.nil?
+    attrs[:started_at]  = _build_dt(@attendance.work_date, started_hm)  unless started_hm.nil?
+    attrs[:finished_at] = _build_dt(@attendance.work_date, finished_hm) unless finished_hm.nil?
 
     Attendance.transaction do
       @attendance.update!(attrs)
 
       # 合計休憩の更新要求が来ているときだけ処理
       unless break_total_hm.nil?
-        total_seconds = parse_hm_to_seconds(break_total_hm)
+        total_seconds = _parse_hm_to_seconds(break_total_hm)
         if total_seconds < 0
           @attendance.errors.add(:base, "休憩は 00:00 以上で入力してください")
           raise ActiveRecord::RecordInvalid, @attendance
@@ -190,22 +166,23 @@ end
 
   private
 
-  def set_attendance
+  def _set_attendance
     @attendance = current_user.attendances.find(params[:id])
   end
 
-  def row_params
+  def _row_params
     params.require(:attendance).permit(:started_at, :finished_at)
   end
 
-  def build_dt(date, hm)
+  def _build_dt(date, hm)
     return nil if hm.blank?
     Time.zone.parse("#{date} #{hm}")
   end
 
-  def parse_hm_to_seconds(hm)
+  def _parse_hm_to_seconds(hm)
     return 0 if hm.blank?
     unless hm =~ /\A\d{1,2}:\d{2}\z/
+      # update内で rescue しているので ActiveRecord::RecordInvalid を投げてOK
       raise ActiveRecord::RecordInvalid.new(@attendance), "休憩は HH:MM 形式で入力してください"
     end
     h, m = hm.split(":").map!(&:to_i)

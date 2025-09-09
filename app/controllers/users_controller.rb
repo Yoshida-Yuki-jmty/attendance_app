@@ -1,6 +1,6 @@
 class UsersController < ApplicationController
   before_action :require_login, except: %i[new create]
-  before_action :set_user, only: %i[show edit update]
+  before_action :_set_user, only: %i[show edit update]
   before_action -> { require_current_user!(@user) }, only: %i[show edit update]
 
   def new
@@ -8,7 +8,7 @@ class UsersController < ApplicationController
   end
 
   def create
-    @user = User.new(user_params)
+    @user = User.new(_user_params)
     if @user.save
       redirect_to new_session_path, notice: 'ユーザー登録が完了しました。ログインしてください。'
     else
@@ -22,7 +22,7 @@ class UsersController < ApplicationController
   def edit; end
 
   def update
-    if @user.update(user_params)
+    if @user.update(_user_params)
       redirect_to @user, notice: 'ユーザー情報を更新しました'
     else
       flash.now[:alert] = "更新できませんでした。入力内容をご確認ください"
@@ -32,11 +32,11 @@ class UsersController < ApplicationController
 
   private
 
-  def set_user
+  def _set_user
     @user = User.find(params[:id])
   end
 
-  def user_params
+  def _user_params
     params.require(:user).permit(:name, :email, :password, :password_digest)
   end
 end

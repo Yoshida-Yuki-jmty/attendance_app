@@ -3,7 +3,7 @@ class BreaktimesController < ApplicationController
 
   # 休憩開始
   def create
-    attendance = current_attendance
+    attendance = _current_attendance
     if attendance.nil?
       redirect_to user_current_attendance_path(current_user), alert: "出勤後に休憩を開始できます"
       return
@@ -35,7 +35,7 @@ class BreaktimesController < ApplicationController
   private
 
   # 今日の論理日の出勤を探す
-  def current_attendance
+  def _current_attendance
     bizdate = Attendance.business_date(Time.zone.now)
     current_user.attendances.find_by(work_date: bizdate)
   end

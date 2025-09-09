@@ -52,33 +52,11 @@
   </thead>
   <tbody>
     <tr>
-      <td class="border px-2 py-1"><%= @today&.started_at ? hm(@today.started_at) : "-" %></td>
-      <td class="border px-2 py-1"><%= @today&.finished_at ? hm(@today.finished_at) : "-" %></td>
-      <td class="border px-2 py-1">
-        <% if @today&.breaktimes.any? %>
-          <% @today.breaktimes.order(:started_at).each do |bt| %>
-            <div><%= [hm(bt.started_at), hm(bt.finished_at)].compact.join(" - ") %></div>
-          <% end %>
-        <% else %>
-          -
-        <% end %>
-      </td>
-      <td class="border px-2 py-1">
-        <% if @today %>
-          <% bs = @today.break_seconds %>
-          <%= bs.positive? ? Time.at(bs).utc.strftime("%H:%M") : "-" %>
-        <% else %>
-          -
-        <% end %>
-      </td>
-      <td class="border px-2 py-1">
-        <% if @today %>
-          <% ws = @today.worked_seconds %>
-          <%= ws.positive? ? Time.at(ws).utc.strftime("%H:%M") : "-" %>
-        <% else %>
-          -
-        <% end %>
-      </td>
+      <td class="border px-2 py-1"><%= time_or_dash(@today&.started_at) %></td>
+      <td class="border px-2 py-1"><%= time_or_dash(@today&.finished_at) %></td>
+      <td class="border px-2 py-1"><%= breaktimes_html(@today) %></td>
+      <td class="border px-2 py-1"><%= @today ? hhmm_or_dash(@today.break_seconds)  : "-" %></td>
+      <td class="border px-2 py-1"><%= @today ? hhmm_or_dash(@today.worked_seconds) : "-" %></td>
     </tr>
   </tbody>
 </table>

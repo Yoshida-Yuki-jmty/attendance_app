@@ -8,55 +8,23 @@
     <span class="<%= day_color_class(d) %>"><%= jp_wday(d) %></span>
   </td>
 
-  <% status =
-      if a.nil?
-        (d <= @today ? "未登録" : "—")
-      elsif a.finished_at.present?
-        "退勤済み"
-      elsif a.started_at.present?
-        "出勤中"
-      else
-        "未登録"
-      end %>
-
   <td class="border border-gray-300 px-2 py-1 align-middle">
     <div class="flex items-center justify-center">
-      <%= status %>
+      <%= row_status_label(row_status_key(a, d, @today)) %>
     </div>
   </td>
 
   <td class="border border-gray-300 px-2 py-1 align-middle">
-    <div class="flex items-center justify-center">
-      <%= a&.started_at ? hm(a.started_at)  : "-" %>
-    </div>
+    <div class="flex items-center justify-center"><%= time_or_dash(a&.started_at) %></div>
   </td>
-
   <td class="border border-gray-300 px-2 py-1 align-middle">
-    <div class="flex items-center justify-center">
-      <%= a&.finished_at ? hm(a.finished_at) : "-" %>
-    </div>
+    <div class="flex items-center justify-center"><%= time_or_dash(a&.finished_at) %></div>
   </td>
-
   <td class="border border-gray-300 px-2 py-1 align-middle">
-    <div class="flex items-center justify-center">
-      <% if a %>
-        <% bs = a.break_seconds %>
-        <%= bs.positive? ? Time.at(bs).utc.strftime("%H:%M") : "-" %>
-      <% else %>
-        -
-      <% end %>
-    </div>
+    <div class="flex items-center justify-center"><%= hhmm_or_dash(a&.break_seconds) %></div>
   </td>
-
   <td class="border border-gray-300 px-2 py-1 align-middle">
-    <div class="flex items-center justify-center">
-      <% if a %>
-        <% ws = a.worked_seconds %>
-        <%= ws.positive? ? Time.at(ws).utc.strftime("%H:%M") : "-" %>
-      <% else %>
-        -
-      <% end %>
-    </div>
+    <div class="flex items-center justify-center"><%= hhmm_or_dash(a&.worked_seconds) %></div>
   </td>
 
   <td class="border border-gray-300 py-1 align-middle">

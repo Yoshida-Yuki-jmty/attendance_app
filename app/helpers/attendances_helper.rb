@@ -3,13 +3,27 @@ module AttendancesHelper
     t&.in_time_zone&.strftime("%H:%M")
   end
 
-  # @today: 今日の勤怠レコード（なければ nil）
-  # @opened_break: 進行中の休憩（なければ nil）
-  def attendance_status_key(today, opened_break)
-    return :none        if today.nil?
-    return :clocked_out if today.finished_at.present?
-    return :on_break    if opened_break.present?
-    return :working     if today.started_at.present?
+  # 時刻 → "HH:MM" or "-"
+  def time_or_dash(time)
+    time.present? ? hm(time) : "-"
+  end
+
+  # 秒数 → "HH:MM" or "-"
+  def hhmm_or_dash(seconds)
+    s = seconds.to_i
+    s.positive? ? Time.at(s).utc.strftime("%H:%M") : "-"
+  end
+
+  # 指定した勤務日の状態判定をするメソッド
+  def attendance_status_key(attendance, opened_break = nil)
+    return :none        if attendance.nil?
+    return :clocked_out if attendance.finished_at.present?
+
+    opened_break ||= attendance.respond_to?(:breaktimes) &&
+                    attendance.breaktimes.exists?(finished_at: nil)
+
+    return :on_break    if opened_break
+    return :working     if attendance.started_at.present?
     :none
   end
 
@@ -50,6 +64,32 @@ module AttendancesHelper
   # 見た目クラス（disabled のとき半透明＋not-allowed）
   def button_ui_class(disabled)
     "px-3 py-1 border rounded #{'opacity-50 cursor-not-allowed' if disabled}"
+  end
+
+  # 「休憩（開始-終了）」の複数行 HTML（なければ "-")
+  def breaktimes_html(attendance)
+    return "-" unless attendance&.breaktimes&.any?
+    items = attendance.breaktimes.order(:started_at).map do |bt|
+      content_tag(:div, [hm(bt.started_at), hm(bt.finished_at)].compact.join(" - "))
+    end
+    safe_join(items)
+  end
+
+  def row_status_key(a, d, today_date)
+    base = attendance_status_key(a) # ← ここで共通判定を再利用
+    return :future_blank if base == :none && d.to_date > today_date
+    return :blank        if base == :none
+    base # :working / :on_break / :clocked_out
+  end
+
+  def row_status_label(key)
+    {
+      blank:        "未登録",
+      future_blank: "—",
+      working:      "出勤中",
+      on_break:     "休憩中",
+      clocked_out:  "退勤済み"
+    }[key]
   end
 
   def jp_md(date)

@@ -57,7 +57,7 @@
           <%= f.submit "保存", class: "px-2 py-0.5 border rounded bg-emerald-600 text-white" %>
 
           <%= link_to "破棄",
-                cancel_edit_user_attendance_path(current_user, attendance, format: :turbo_stream),
+                user_attendance_edit_session_path(current_user, attendance, format: :turbo_stream),
                 data: { turbo_stream: true },
                 class: "px-2 py-0.5 border rounded bg-gray-500 text-white" %>
         </div>

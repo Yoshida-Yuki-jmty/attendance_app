@@ -111,30 +111,6 @@ class AttendancesController < ApplicationController
     end
   end
 
-  # フォーム編集の破棄
-  def cancel_edit
-    @attendance = current_user.attendances.find(params[:id])
-    selected_business_date  = @attendance.work_on
-
-    # 編集開始時に新規作成しただけで空のままなら削除して未登録表示に戻す
-    if @attendance.started_at.blank? && @attendance.finished_at.blank? && @attendance.breaktimes.blank?
-      target_id = dom_id(@attendance)
-      @attendance.destroy
-      return render turbo_stream: turbo_stream.replace(
-        target_id,
-        partial: "attendances/row_display",
-        locals: { attendance: nil, date: selected_business_date, today: business_today }
-      )
-    end
-
-    # 既存レコードなら普通に表示に戻す
-    render turbo_stream: turbo_stream.replace(
-      dom_id(@attendance),
-      partial: "attendances/row_display",
-      locals: { attendance: @attendance, date: selected_business_date, today: business_today }
-    )
-  end
-
 def destroy
   @attendance = current_user.attendances.find(params[:id])
   selected_business_date  = @attendance.work_on

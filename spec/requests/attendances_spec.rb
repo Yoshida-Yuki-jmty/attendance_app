@@ -61,7 +61,7 @@ RSpec.describe "Attendances", type: :request do
     it "cancel_edit: 空の新規レコードは削除され未登録表示へ戻す" do
       date = Date.new(2025,9,3)
       a = user.attendances.create!(work_on: date) # started/finished なし
-      get cancel_edit_user_attendance_path(user, a, format: :turbo_stream)
+      delete user_attendance_edit_session_path(user, a, format: :turbo_stream)
       expect(response.media_type).to eq Mime[:turbo_stream]
       expect(user.attendances.where(id: a.id)).to be_empty
       expect(response.body).to include("未登録").or include("—")

@@ -36,15 +36,13 @@ class Attendance < ApplicationRecord
 
   # user_id に対して、workday が一意(unique)となることを強制
   validates :work_date, presence: true, uniqueness: { scope: :user_id }
-  validate :finished_after_started
+  validate :_finished_after_started
+  validate :_finished_requires_started
 
   # 出勤時に work_date を自動算出
-  before_validation :set_work_date, if: -> { started_at.present? && will_save_change_to_started_at? }
+  before_validation :_set_work_date, if: -> { started_at.present? && will_save_change_to_started_at? }
 
-  scope :of_user, ->(user) { where(user_id: user.id) }
-  scope :in_month, ->(date) { where(work_date: date.beginning_of_month..date.end_of_month).order(work_date: :desc) }
-
-  # 出勤基準で業務日を決める（5:00カットオフ補正）
+  # 出勤基準で業務日を決める（カットオフ補正）
   def self.business_date(time)
     (time.in_time_zone - CUTOFF_HOUR.hours).to_date
   end
@@ -65,7 +63,7 @@ class Attendance < ApplicationRecord
     end
   end
 
-  # 退勤打刻（5:00跨ぎなら翌日分を自動追加）
+  # 退勤打刻（CUTOFF時刻 跨ぎなら翌日分を自動追加）
   def self.clock_out!(user, now = Time.zone.now)
     business_today = business_date(now)
     attendance = user.attendances.find_by(work_date: business_today)||
@@ -88,7 +86,7 @@ class Attendance < ApplicationRecord
       return attendance
     end
 
-    # 5:00 を跨ぐ場合 → 分割保存
+    # CUTOFF時刻 を跨ぐ場合 → 分割保存
     Attendance.transaction do
       if (breaktime = attendance.breaktimes.opened.first)
         breaktime.update!(finished_at: cutoff_end)
@@ -116,12 +114,18 @@ class Attendance < ApplicationRecord
 
   private
 
-  def set_work_date
+  def _set_work_date
     self.work_date = self.class.business_date(started_at)
   end
 
-  def finished_after_started
+  def _finished_after_started
     return unless started_at && finished_at
     errors.add(:finished_at, "は出勤以降にしてください") if finished_at < started_at
+  end
+
+  def _finished_requires_started
+    if finished_at.present? && started_at.blank?
+      errors.add(:started_at, "を先に入力してください")
+    end
   end
 end

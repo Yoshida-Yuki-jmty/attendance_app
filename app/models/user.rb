@@ -18,9 +18,12 @@ class User < ApplicationRecord
   has_many :attendances, dependent: :destroy
   has_many :breaktimes, through: :attendances
 
-  before_save { self.email = email.downcase }
+  before_save { self.email = email.downcase.strip }
 
   validates :name,  presence: true
-  validates :email, presence: true, uniqueness: true
-  validates :password, presence: true, length: { minimum: 8 }
+  validates :email,
+            presence: true,
+            uniqueness: { case_sensitive: false },
+            format: { with: /\A[^@\s]+@[^@\s]+\z/ }
+  validates :password, length: { minimum: 8 }, allow_nil: true
 end

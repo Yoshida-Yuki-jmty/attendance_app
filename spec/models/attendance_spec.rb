@@ -87,7 +87,7 @@ RSpec.describe Attendance, type: :model do
         .to raise_error(Attendance::NoClockInError)
     end
 
-    it "5:00 以内なら同日で finished_at 更新" do
+    it "CUTOFF時刻 以内なら同日で finished_at 更新" do
       travel_to Time.zone.parse("2025-09-08 09:00") do
         Attendance.clock_in!(user)
       end

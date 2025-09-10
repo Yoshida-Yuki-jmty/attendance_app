@@ -20,8 +20,10 @@
 #
 class Breaktime < ApplicationRecord
   belongs_to :attendance
-  validate :finished_after_started
-  validate :only_one_open_break, if: -> { finished_at.nil? }
+
+  validates :started_at, presence: true
+  validate :_finished_after_started
+  validate :_only_one_open_break, if: -> { finished_at.nil? }
 
   scope :opened, -> { where(finished_at: nil).order(:started_at) }
 
@@ -35,12 +37,12 @@ class Breaktime < ApplicationRecord
 
   private
 
-  def finished_after_started
+  def _finished_after_started
     return unless started_at && finished_at
     errors.add(:finished_at, "は休憩開始以降にしてください") if finished_at < started_at
   end
 
-  def only_one_open_break
+  def _only_one_open_break
     if attendance.breaktimes.where(finished_at: nil).where.not(id: id).exists?
       errors.add(:base, "すでに休憩中です")
     end

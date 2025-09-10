@@ -56,7 +56,7 @@ class AttendancesController < ApplicationController
       unless break_total_hm.nil?
         total_seconds = _parse_hm_to_seconds(break_total_hm)
         if total_seconds < 0
-          @attendance.errors.add(:base, "休憩は 00:00 以上で入力してください")
+          @attendance.errors.add(:base, I18n.t("activerecord.errors.models.attendance.messages.break_total_negative"))
           raise ActiveRecord::RecordInvalid, @attendance
         end
 
@@ -73,7 +73,7 @@ class AttendancesController < ApplicationController
 
     respond_to do |format|
       format.turbo_stream do
-        flash.now[:notice] = "保存しました"
+        flash.now[:notice] = I18n.t("flash.common.saved")
         render turbo_stream: [
           turbo_stream.replace(
             dom_id(@attendance),
@@ -87,14 +87,14 @@ class AttendancesController < ApplicationController
         redirect_to user_attendances_path(
           current_user, 
           month: @attendance.work_date.beginning_of_month
-        )
+        ), notice: I18n.t("flash.common.saved")
       }
     end
 
   rescue ActiveRecord::RecordInvalid => e
     respond_to do |format|
       format.turbo_stream do
-        flash.now[:alert] = e.record.errors.full_messages.to_sentence.presence || "保存に失敗しました"
+        flash.now[:alert] = e.record.errors.full_messages.to_sentence.presence || I18n.t("flash.common.save_failed")
         render turbo_stream: [
           turbo_stream.replace(
             dom_id(@attendance),
@@ -106,7 +106,7 @@ class AttendancesController < ApplicationController
       end
       format.html do
         redirect_to user_attendances_path(current_user),
-        alert: e.record.errors.full_messages.to_sentence
+        alert: (e.record.errors.full_messages.to_sentence.presence || I18n.t("flash.common.save_failed"))
       end
     end
   end
@@ -168,7 +168,7 @@ end
     return 0 if hm.blank?
     unless hm =~ /\A\d{1,2}:\d{2}\z/
       # update内で rescue しているので ActiveRecord::RecordInvalid を投げてOK
-      raise ActiveRecord::RecordInvalid.new(@attendance), "休憩は HH:MM 形式で入力してください"
+      raise ActiveRecord::RecordInvalid.new(@attendance), I18n.t("activerecord.errors.models.attendance.messages.break_total_format")
     end
     h, m = hm.split(":").map!(&:to_i)
     h * 3600 + m * 60

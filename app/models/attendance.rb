@@ -119,13 +119,15 @@ class Attendance < ApplicationRecord
   end
 
   def _finished_after_started
-    return unless started_at && finished_at
-    errors.add(:finished_at, "は出勤以降にしてください") if finished_at < started_at
+    return unless started_at.present? && finished_at.present?
+    if finished_at < started_at
+      errors.add(:finished_at, :after_started)
+    end
   end
 
   def _finished_requires_started
     if finished_at.present? && started_at.blank?
-      errors.add(:started_at, "を先に入力してください")
+      errors.add(:started_at, :required_before_finished)
     end
   end
 end

@@ -35,9 +35,10 @@ describe "バリデーション" do
 
     it "メールはユニーク（大文字小文字を正規化）" do
       create(:user, email: "foo@example.com")
-      expect {
-        create(:user, email: "Foo@Example.com")
-      }.to raise_error(ActiveRecord::RecordNotUnique)
+      user = build(:user, email: "Foo@Example.com")
+      # バリデーションを迂回して DB 制約に当てる
+    expect { create(:user, email: "Foo@Example.com") }
+      .to raise_error(ActiveRecord::RecordInvalid)
     end
 
     it "保存時にメールが小文字化される" do

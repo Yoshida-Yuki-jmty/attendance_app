@@ -18,7 +18,7 @@ class User < ApplicationRecord
   has_many :attendances, dependent: :destroy
   has_many :breaktimes, through: :attendances
 
-  before_save { self.email = email.downcase.strip }
+  before_validation :normalize_email
 
   validates :name,  presence: true
   validates :email,
@@ -26,4 +26,10 @@ class User < ApplicationRecord
             uniqueness: { case_sensitive: false },
             format: { with: /\A[^@\s]+@[^@\s]+\z/ }
   validates :password, length: { minimum: 8 }, allow_nil: true
+
+  private
+  def normalize_email
+    self.email = email.to_s.strip.downcase
+  end
+
 end

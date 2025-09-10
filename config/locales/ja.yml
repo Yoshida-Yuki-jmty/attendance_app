@@ -1,11 +1,5 @@
 ja:
-  attendances:
-    notices:
-      clocked_in: 出勤しました
-      clocked_out: 退勤しました
-    errors:
-      no_clock_in: 本日の出勤登録がありません
-      already_clocked_out: 本日は退勤済みです
+
   activerecord:
     errors:
       messages:
@@ -13,6 +7,61 @@ ja:
         restrict_dependent_destroy:
           has_one: "%{record}が存在しているので削除できません"
           has_many: "%{record}が存在しているので削除できません"
+      # ActiveRecord の属性エラーメッセージをモデル別に定義
+      models:
+        attendance:
+          attributes:
+            finished_at:
+              after_started: は出勤以降にしてください
+            started_at:
+              required_before_finished: を先に入力してください
+          messages:
+            break_total_format: 休憩は HH:MM 形式で入力してください
+            break_total_negative: 休憩は 00:00 以上で入力してください
+        breaktime:
+          attributes:
+            finished_at:
+              after_started: は休憩開始以降にしてください
+          messages:
+            only_one_open_break: すでに休憩中です
+  attendances:
+    notices:
+      clocked_in: 出勤しました
+      clocked_out: 退勤しました
+    errors:
+      no_clock_in: 本日の出勤登録がありません
+      already_clocked_out: 本日は退勤済みです
+  breaktimes:
+    notices:
+      started: 休憩を開始しました
+      finished: 休憩を終了しました
+    errors:
+      already_on_break: すでに休憩中です
+      already_finished: この休憩は既に終了しています
+      not_found: 休憩が見つかりません
+      cannot_start_after_clock_out: 退勤済みです
+      must_clock_in_first: 出勤後に休憩を開始できます
+
+  auth:
+    require_login: ログインしてください
+    unauthorized: 権限がありません
+
+  flash:
+    common:
+      saved: 保存しました
+      save_failed: 保存に失敗しました
+    sessions:
+      already_logged_in: すでにログイン済みです
+      logged_in: ログインしました
+      logged_out: ログアウトしました
+      invalid_credentials: メールまたはパスワードが違います
+    users:
+      created: ユーザー登録が完了しました。ログインしてください。
+      create_failed: 登録に失敗しました。入力内容をご確認ください
+      updated: ユーザー情報を更新しました
+      update_failed: 更新できませんでした。入力内容をご確認ください
+
+
   date:
     abbr_day_names:
     - 日

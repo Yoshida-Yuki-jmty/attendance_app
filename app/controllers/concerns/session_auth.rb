@@ -37,13 +37,13 @@ module SessionAuth
   end
 
   def require_login
-    redirect_to new_session_path, alert: 'ログインしてください' unless logged_in?
+    redirect_to new_session_path, alert: I18n.t("auth.require_login") unless logged_in?
   end
 
   def require_current_user!(user = nil)
     user ||= @user
     return if logged_in_user?(user)
 
-    redirect_to new_session_path, alert: '権限がありません'
+    redirect_to new_session_path, alert: I18n.t("auth.unauthorized")
   end
 end

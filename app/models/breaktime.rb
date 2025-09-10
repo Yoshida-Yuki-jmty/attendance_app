@@ -28,9 +28,9 @@ class Breaktime < ApplicationRecord
   scope :opened, -> { where(finished_at: nil).order(:started_at) }
 
   def self.start_break_for!(attendance, now = Time.zone.now)
-    raise StandardError, "退勤済みです" if attendance.finished_at.present?
+    raise StandardError, I18n.t("breaktimes.errors.cannot_start_after_clock_out") if attendance.finished_at.present?
     attendance.with_lock do
-      raise StandardError, "すでに休憩中です" if attendance.breaktimes.opened.exists?
+      raise StandardError, I18n.t("breaktimes.errors.already_on_break") if attendance.breaktimes.opened.exists?
       attendance.breaktimes.create!(started_at: now)
     end
   end
@@ -39,12 +39,12 @@ class Breaktime < ApplicationRecord
 
   def _finished_after_started
     return unless started_at && finished_at
-    errors.add(:finished_at, "は休憩開始以降にしてください") if finished_at < started_at
+    errors.add(:finished_at, :after_started) if finished_at < started_at
   end
 
   def _only_one_open_break
     if attendance.breaktimes.where(finished_at: nil).where.not(id: id).exists?
-      errors.add(:base, "すでに休憩中です")
+      errors.add(:base, I18n.t("activerecord.errors.models.breaktime.messages.only_one_open_break"))
     end
   end
 end

@@ -1,9 +1,9 @@
 class CurrentAttendancesController < ApplicationController
   before_action :require_login
 
-  rescue_from Attendance::AlreadyClockedOutError, with: :_handle_attendance_error
-  rescue_from Attendance::NoClockInError,         with: :_handle_attendance_error
-  rescue_from ActiveRecord::RecordInvalid,        with: :_handle_attendance_error
+  rescue_from Attendances::AlreadyClockedOutError, with: :_handle_attendance_error
+  rescue_from Attendances::NoClockInError,         with: :_handle_attendance_error
+  rescue_from ActiveRecord::RecordInvalid,         with: :_handle_attendance_error
 
   def show
     @current_attendance = _current_attendance
@@ -34,9 +34,10 @@ class CurrentAttendancesController < ApplicationController
 
   # ＝＝＝ 出退勤の共通処理 ＝＝＝
   def _punch!(direction, notice:)
+    punch = Attendances::Punch.new(user: current_user)
     case direction
-    when :in  then Attendance.clock_in!(current_user)
-    when :out then Attendance.clock_out!(current_user)
+    when :in  then punch.clock_in!
+    when :out then punch.clock_out!
     else           raise ArgumentError, "unknown punch direction: #{direction}"
     end
     redirect_to root_path, notice: notice

@@ -74,7 +74,7 @@ RSpec.describe Attendance, type: :model do
         create(:attendance, :finished, user: user, work_date: Date.new(2025,9,8))
         expect {
           Attendance.clock_in!(user)
-        }.to raise_error(Attendance::AlreadyClockedOutError)
+        }.to raise_error(Attendances::AlreadyClockedOutError)
       end
     end
   end
@@ -84,7 +84,7 @@ RSpec.describe Attendance, type: :model do
 
     it "出勤が無ければエラー" do
       expect { Attendance.clock_out!(user) }
-        .to raise_error(Attendance::NoClockInError)
+        .to raise_error(Attendances::NoClockInError)
     end
 
     it "CUTOFF時刻 以内なら同日で finished_at 更新" do

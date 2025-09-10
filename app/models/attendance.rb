@@ -20,9 +20,6 @@
 #
 class Attendance < ApplicationRecord
 
-  class NoClockInError         < StandardError; end
-  class AlreadyClockedOutError < StandardError; end
-
   # -------------------------------------------------------------------
 
   # !! 5:00 区切りの場合、複雑化したため0:00に修正 !!
@@ -47,60 +44,12 @@ class Attendance < ApplicationRecord
     (time.in_time_zone - CUTOFF_HOUR.hours).to_date
   end
 
-  # 出勤打刻
   def self.clock_in!(user, now = Time.zone.now)
-    business_today = business_date(now)
-    attendance = user.attendances.find_by(work_date: business_today)
-
-    if attendance && 
-      if attendance.finished_at.present?
-        raise AlreadyClockedOutError, I18n.t("attendances.errors.already_clocked_out")
-      else
-        attendance.update!(started_at: now)
-      end
-    else
-      user.attendances.create!(work_date: business_today, started_at: now)
-    end
+    Attendances::Punch.new(user: user, now: now, cutoff_hour: CUTOFF_HOUR).clock_in!
   end
 
-  # 退勤打刻（CUTOFF時刻 跨ぎなら翌日分を自動追加）
   def self.clock_out!(user, now = Time.zone.now)
-    business_today = business_date(now)
-    attendance = user.attendances.find_by(work_date: business_today)||
-          user.attendances.find_by(work_date: business_today - 1)
-
-    raise NoClockInError, I18n.t("attendances.errors.no_clock_in") if attendance.nil?
-
-    cutoff_end = Time.zone.local(
-      attendance.work_date.year,
-      attendance.work_date.month,
-      attendance.work_date.day,
-      CUTOFF_HOUR
-    ) + 1.day
-
-    if now < cutoff_end
-      if (breaktime = attendance.breaktimes.opened.first)
-        breaktime.update!(finished_at: now)
-      end
-      attendance.update!(finished_at: now)
-      return attendance
-    end
-
-    # CUTOFF時刻 を跨ぐ場合 → 分割保存
-    Attendance.transaction do
-      if (breaktime = attendance.breaktimes.opened.first)
-        breaktime.update!(finished_at: cutoff_end)
-      end
-      if attendance.finished_at.blank? || attendance.finished_at < cutoff_end
-        attendance.update!(finished_at: cutoff_end)
-      end
-
-      next_date = attendance.work_date + 1
-      next_attendance  = user.attendances.find_or_initialize_by(work_date: next_date)
-      next_attendance.started_at ||= cutoff_end
-      next_attendance.update!(finished_at: now)
-      next_attendance
-    end
+    Attendances::Punch.new(user: user, now: now, cutoff_hour: CUTOFF_HOUR).clock_out!
   end
 
   def worked_seconds

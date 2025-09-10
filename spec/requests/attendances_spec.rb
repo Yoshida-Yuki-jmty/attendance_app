@@ -4,16 +4,20 @@ RSpec.describe "Attendances", type: :request do
 
   let(:user) { create(:user) }
 
-  describe "GET /users/:user_id/attendance (show)" do
-    it "ログイン必須" do
-      get user_current_attendance_path(user)
-      expect(response).to redirect_to(new_session_path)
+  describe "GET /users/:user_id/attendance" do
+    let(:method) { :get }
+    let(:path)   { user_current_attendance_path(user) }
+    context "未ログインの場合" do
+      it { is_expected.to eq 302 }
     end
 
-    it "ログイン後は 200" do
-      sign_in(user)
-      get user_current_attendance_path(user)
-      expect(response).to have_http_status(:ok)
+    context "ログイン済の場合" do
+      before { sign_in(user) }
+      it do
+        is_expected.to eq 200
+        expect(response.body).to include(%(<turbo-frame id="selected-month">))
+        expect(response.body).to include("<table")
+      end
     end
   end
 

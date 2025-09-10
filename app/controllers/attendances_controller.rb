@@ -1,6 +1,6 @@
 class AttendancesController < ApplicationController
   include ActionView::RecordIdentifier
-  include ::Attendances::Saveable 
+  include Saveable
   before_action :require_login
   before_action :_set_attendance, only: [:edit, :update, :destroy]
 

@@ -2,16 +2,16 @@
 
 <div class="mx-auto w-full max-w-3xl px-2">
   <%= form_with url: user_attendances_path(current_user), method: :get,
-                data: { turbo_frame: "att-month" },
+                data: { turbo_frame: "selected-month" },
                 class: "mb-3 inline-flex items-center gap-2" do %>
     <label class="text-xs text-gray-700">月を選択 :</label>
     <%= month_field_tag :month,
-          @month.strftime("%Y-%m"),
+          @target_month.strftime("%Y-%m"),
           class: "border rounded px-2 py-1",
           onchange: "this.form.requestSubmit()" %>
   <% end %>
 
-  <turbo-frame id="att-month">
+  <turbo-frame id="selected-month">
     <div class="overflow-x-auto">
       <table class="w-full table-fixed border text-sm">
         <thead class="bg-gray-100">
@@ -27,9 +27,9 @@
           </tr>
         </thead>
         <tbody>
-          <% @days.each do |d| %>
-            <% a = @att_by_date[d] %>
-            <%= render "attendances/row_display", a: a, d: d %>
+          <% @days_in_month.each do |date| %>
+            <% attendance = @attendances_by_date[date] %>
+            <%= render "attendances/row_display", attendance: attendance, date: date %>
           <% end %>
         </tbody>
       </table>

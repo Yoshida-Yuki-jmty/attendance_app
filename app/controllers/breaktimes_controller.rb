@@ -36,7 +36,6 @@ class BreaktimesController < ApplicationController
 
   # 今日の論理日の出勤を探す
   def _current_attendance
-    bizdate = Attendance.business_date(Time.zone.now)
-    current_user.attendances.find_by(work_date: bizdate)
+    current_user.attendances.find_by(work_date: business_today)
   end
 end

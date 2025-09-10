@@ -23,9 +23,13 @@ class Attendance < ApplicationRecord
   class NoClockInError         < StandardError; end
   class AlreadyClockedOutError < StandardError; end
 
+  # -------------------------------------------------------------------
+
   # !! 5:00 区切りの場合、複雑化したため0:00に修正 !!
   # 他の箇所はコメント含めそのままにしておく（テストのみ修正）
   CUTOFF_HOUR = 0 
+
+  # -------------------------------------------------------------------
 
   belongs_to :user
   has_many :breaktimes, dependent: :destroy
@@ -38,7 +42,7 @@ class Attendance < ApplicationRecord
   before_validation :set_work_date, if: -> { started_at.present? && will_save_change_to_started_at? }
 
   scope :of_user, ->(user) { where(user_id: user.id) }
-  scope :in_month, ->(d) { where(work_date: d.beginning_of_month..d.end_of_month).order(work_date: :desc) }
+  scope :in_month, ->(date) { where(work_date: date.beginning_of_month..date.end_of_month).order(work_date: :desc) }
 
   # 出勤基準で業務日を決める（5:00カットオフ補正）
   def self.business_date(time)
@@ -47,55 +51,57 @@ class Attendance < ApplicationRecord
 
   # 出勤打刻
   def self.clock_in!(user, now = Time.zone.now)
-    biz = business_date(now)
-    att = user.attendances.find_by(work_date: biz)
+    business_today = business_date(now)
+    attendance = user.attendances.find_by(work_date: business_today)
 
-    if att
-      raise AlreadyClockedOutError, I18n.t("attendances.errors.already_clocked_out") if att.finished_at.present?
-      att.update!(started_at: now) # 2回目以降は出勤時刻を更新
-      att
+    if attendance && 
+      if attendance.finished_at.present?
+        raise AlreadyClockedOutError, I18n.t("attendances.errors.already_clocked_out")
+      else
+        attendance.update!(started_at: now)
+      end
     else
-      user.attendances.create!(work_date: biz, started_at: now)
+      user.attendances.create!(work_date: business_today, started_at: now)
     end
   end
 
   # 退勤打刻（5:00跨ぎなら翌日分を自動追加）
   def self.clock_out!(user, now = Time.zone.now)
-    biz = business_date(now)
-    att = user.attendances.find_by(work_date: biz)||
-          user.attendances.find_by(work_date: biz - 1)
+    business_today = business_date(now)
+    attendance = user.attendances.find_by(work_date: business_today)||
+          user.attendances.find_by(work_date: business_today - 1)
 
-    raise NoClockInError, I18n.t("attendances.errors.no_clock_in") if att.nil?
+    raise NoClockInError, I18n.t("attendances.errors.no_clock_in") if attendance.nil?
 
     cutoff_end = Time.zone.local(
-      att.work_date.year,
-      att.work_date.month,
-      att.work_date.day,
+      attendance.work_date.year,
+      attendance.work_date.month,
+      attendance.work_date.day,
       CUTOFF_HOUR
     ) + 1.day
 
     if now < cutoff_end
-      if (bt = att.breaktimes.opened.first)
-        bt.update!(finished_at: now)
+      if (breaktime = attendance.breaktimes.opened.first)
+        breaktime.update!(finished_at: now)
       end
-      att.update!(finished_at: now)
-      return att
+      attendance.update!(finished_at: now)
+      return attendance
     end
 
     # 5:00 を跨ぐ場合 → 分割保存
     Attendance.transaction do
-      if (bt = att.breaktimes.opened.first)
-        bt.update!(finished_at: cutoff_end)
+      if (breaktime = attendance.breaktimes.opened.first)
+        breaktime.update!(finished_at: cutoff_end)
       end
-      if att.finished_at.blank? || att.finished_at < cutoff_end
-        att.update!(finished_at: cutoff_end)
+      if attendance.finished_at.blank? || attendance.finished_at < cutoff_end
+        attendance.update!(finished_at: cutoff_end)
       end
 
-      next_date = att.work_date + 1
-      next_att  = user.attendances.find_or_initialize_by(work_date: next_date)
-      next_att.started_at ||= cutoff_end
-      next_att.update!(finished_at: now)
-      next_att
+      next_date = attendance.work_date + 1
+      next_attendance  = user.attendances.find_or_initialize_by(work_date: next_date)
+      next_attendance.started_at ||= cutoff_end
+      next_attendance.update!(finished_at: now)
+      next_attendance
     end
   end
 

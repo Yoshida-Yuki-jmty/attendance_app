@@ -33,12 +33,6 @@ class Breaktime < ApplicationRecord
     end
   end
 
-  # def self.finish_break_for!(attendance, now = Time.zone.now)
-  #   bt = attendance.breaktimes.opened.first
-  #   raise StandardError, "休憩が開始されていません" if bt.nil?
-  #   bt.update!(finished_at: now)
-  # end
-
   private
 
   def finished_after_started

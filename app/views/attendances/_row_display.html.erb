@@ -1,50 +1,50 @@
 <!-- app/views/attendances/_row_display.html.erb -->
-<% row_id = a ? dom_id(a) : "attendance-#{d.strftime('%Y%m%d')}" %>
+<% row_id = attendance ? dom_id(attendance) : "attendance-#{date.strftime('%Y%m%d')}" %>
 <tr id="<%= row_id %>">
   <td class="border border-gray-300 px-2 py-1 align-middle">
-    <span class="<%= day_color_class(d) %>"><%= jp_md(d) %></span>
+    <span class="<%= day_color_class(date) %>"><%= format_jp_md(date) %></span>
   </td>
   <td class="border border-gray-300 px-2 py-1 align-middle text-center">
-    <span class="<%= day_color_class(d) %>"><%= jp_wday(d) %></span>
+    <span class="<%= day_color_class(date) %>"><%= format_jp_wday(date) %></span>
   </td>
 
   <td class="border border-gray-300 px-2 py-1 align-middle">
     <div class="flex items-center justify-center">
-      <%= row_status_label(row_status_key(a, d, @today)) %>
+      <%= daily_status_label(daily_status_key(attendance, date)) %>
     </div>
   </td>
 
   <td class="border border-gray-300 px-2 py-1 align-middle">
-    <div class="flex items-center justify-center"><%= time_or_dash(a&.started_at) %></div>
+    <div class="flex items-center justify-center"><%= format_time_or_dash(attendance&.started_at) %></div>
   </td>
   <td class="border border-gray-300 px-2 py-1 align-middle">
-    <div class="flex items-center justify-center"><%= time_or_dash(a&.finished_at) %></div>
+    <div class="flex items-center justify-center"><%= format_time_or_dash(attendance&.finished_at) %></div>
   </td>
   <td class="border border-gray-300 px-2 py-1 align-middle">
-    <div class="flex items-center justify-center"><%= hhmm_or_dash(a&.break_seconds) %></div>
+    <div class="flex items-center justify-center"><%= format_hhmm_or_dash(attendance&.break_seconds) %></div>
   </td>
   <td class="border border-gray-300 px-2 py-1 align-middle">
-    <div class="flex items-center justify-center"><%= hhmm_or_dash(a&.worked_seconds) %></div>
+    <div class="flex items-center justify-center"><%= format_hhmm_or_dash(attendance&.worked_seconds) %></div>
   </td>
 
   <td class="border border-gray-300 py-1 align-middle">
     <div class="flex justify-start items-center gap-x-2 ml-3.5">
-      <% if a %>
+      <% if attendance %>
         <!-- 既存レコードは edit_row（member） -->
         <%= button_to "編集",
-            edit_user_attendance_path(current_user, a, format: :turbo_stream),
+            edit_user_attendance_path(current_user, attendance, format: :turbo_stream),
             method: :get,
             form: { data: { turbo: true } },
             class: "px-2 py-0.5 border rounded text-blue-700" %>
         <%= button_to "削除",
-            user_attendance_path(current_user, a, format: :turbo_stream),
+            user_attendance_path(current_user, attendance, format: :turbo_stream),
             method: :delete,
             form:  { data: { turbo: true, turbo_confirm: "この日の勤怠を削除します。よろしいですか？" } },
             class: "px-2 py-0.5 border rounded text-red-600" %>
       <% else %>
       <!-- 未登録日は build_row（collection, POST）で作ってから編集 -->
         <%= button_to "編集",
-            user_attendances_path(current_user, date: d, format: :turbo_stream),
+            user_attendances_path(current_user, date: date, format: :turbo_stream),
             method: :post,
             form: { data: { turbo: true } },
             class: "px-2 py-0.5 border rounded text-blue-700" %>

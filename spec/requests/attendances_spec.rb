@@ -22,7 +22,7 @@ RSpec.describe "Attendances", type: :request do
       sign_in(user)
       get user_attendances_path(user, month: Date.current.strftime("%Y-%m"))
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include(%(<turbo-frame id="att-month">))
+      expect(response.body).to include(%(<turbo-frame id="selected-month">))
       expect(response.body).to include(%(<table))
     end
   end
@@ -50,7 +50,7 @@ RSpec.describe "Attendances", type: :request do
       expect(response.body).to include("18:00")
     end
 
-    it "build_row: 未登録日でもフォーム表示できる" do
+    it "create: 未登録日でもフォーム表示できる" do
       date = Date.new(2025,9,2)
       post user_attendances_path(user, format: :turbo_stream), params: { date: date.to_s }
       expect(response.media_type).to eq Mime[:turbo_stream]
@@ -58,10 +58,10 @@ RSpec.describe "Attendances", type: :request do
       expect(response.body).to include(%(<tr id="attendance_))
     end
 
-    it "cancel_row: 空の新規レコードは削除され未登録表示へ戻す" do
+    it "cancel_edit: 空の新規レコードは削除され未登録表示へ戻す" do
       date = Date.new(2025,9,3)
       a = user.attendances.create!(work_date: date) # started/finished なし
-      get cancel_row_user_attendance_path(user, a, format: :turbo_stream)
+      get cancel_edit_user_attendance_path(user, a, format: :turbo_stream)
       expect(response.media_type).to eq Mime[:turbo_stream]
       expect(user.attendances.where(id: a.id)).to be_empty
       expect(response.body).to include("未登録").or include("—")

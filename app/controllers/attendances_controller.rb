@@ -2,43 +2,32 @@ class AttendancesController < ApplicationController
   include ActionView::RecordIdentifier
 
   before_action :require_login
-  before_action :_set_attendance, only: [:edit, :update, :cancel_row, :destroy]
+  before_action :_set_attendance, only: [:edit, :update, :cancel_edit, :destroy]
 
   def index
-    raw = params[:month].presence
-    @month =
-      if raw
-        if raw.match?(/\A\d{4}-\d{2}\z/)
-          Date.strptime(raw, "%Y-%m")
-        else
-          Date.parse(raw)
-        end.beginning_of_month
-      else
-        Date.current.beginning_of_month
-      end
-    @today  = Attendance.business_date(Time.zone.now)
-    range   = @month..@month.end_of_month
+    @target_month = _target_month
+    month_range   = _month_range(@target_month)
 
-    @att_by_date = current_user.attendances
-                      .where(work_date: range)
-                      .includes(:breaktimes)
-                      .index_by(&:work_date)
+    @attendances_by_date = current_user.attendances
+                              .where(work_date: month_range)
+                              .includes(:breaktimes)
+                              .index_by(&:work_date)
 
-    @days = range.to_a
+    @days_in_month = month_range.to_a
   end
 
   # 未登録日の編集開始：その日のレコードを作ってフォームに
   def create
-    date = Date.parse(params[:date])
-    @attendance = current_user.attendances.find_or_create_by!(work_date: date)
+    chosen_date = Date.parse(params[:date])
+    @attendance = current_user.attendances.find_or_create_by!(work_date: chosen_date)
 
     # index 上の未登録行は id="attendance-YYYYMMDD" のフォールバックIDで描画している前提
-    fallback_id = "attendance-#{date.strftime('%Y%m%d')}"
+    fallback_id = "attendance-#{chosen_date.strftime('%Y%m%d')}"
 
     render turbo_stream: turbo_stream.replace(
       fallback_id,
       partial: "attendances/row_form",
-      locals: { a: @attendance, d: date }
+      locals: { attendance: @attendance, date: chosen_date }
     )
   end
 
@@ -47,22 +36,21 @@ class AttendancesController < ApplicationController
     render turbo_stream: turbo_stream.replace(
       dom_id(@attendance),
       partial: "attendances/row_form",
-      locals: { a: @attendance, d: @attendance.work_date }
+      locals: { attendance: @attendance, date: @attendance.work_date }
     )
   end
 
   def update
-    attrs = _row_params.to_h
-    # 時刻のみのパラメータを日付と合成
-    started_hm     = params.dig(:attendance, :started_at_hm)
-    finished_hm    = params.dig(:attendance, :finished_at_hm)
+    update_data    = _attendance_params.to_h
+    started_at_hm  = params.dig(:attendance, :started_at_hm)
+    finished_at_hm = params.dig(:attendance, :finished_at_hm)
     break_total_hm = params.dig(:attendance, :break_total_hm)
 
-    attrs[:started_at]  = _build_dt(@attendance.work_date, started_hm)  unless started_hm.nil?
-    attrs[:finished_at] = _build_dt(@attendance.work_date, finished_hm) unless finished_hm.nil?
+    update_data[:started_at]  = _build_datetime(@attendance.work_date, started_at_hm)  unless started_at_hm.nil?
+    update_data[:finished_at] = _build_datetime(@attendance.work_date, finished_at_hm) unless finished_at_hm.nil?
 
     Attendance.transaction do
-      @attendance.update!(attrs)
+      @attendance.update!(update_data)
 
       # 合計休憩の更新要求が来ているときだけ処理
       unless break_total_hm.nil?
@@ -77,13 +65,11 @@ class AttendancesController < ApplicationController
 
         if total_seconds > 0
           # 合計だけが必要なので「出勤時刻の5時間後」にダミー休憩を１つ作る
-          base = (@attendance.started_at || Time.zone.parse("#{@attendance.work_date} 9:00")) + 5.hours
-          @attendance.breaktimes.create!(started_at: base, finished_at: base + total_seconds)
+          brake_base_time = (@attendance.started_at || Time.zone.parse("#{@attendance.work_date} 9:00")) + 5.hours
+          @attendance.breaktimes.create!(started_at: brake_base_time, finished_at: brake_base_time + total_seconds)
         end
       end
     end
-
-    @today = Attendance.business_date(Time.zone.now)
 
     respond_to do |format|
       format.turbo_stream do
@@ -92,7 +78,7 @@ class AttendancesController < ApplicationController
           turbo_stream.replace(
             dom_id(@attendance),
             partial: "attendances/row_display",
-            locals: { a: @attendance, d: @attendance.work_date, today: @today }
+            locals: { attendance: @attendance, date: @attendance.work_date, today: business_today }
           ),
           turbo_stream.update("flash", partial: "shared/flash")
         ]
@@ -113,7 +99,7 @@ class AttendancesController < ApplicationController
           turbo_stream.replace(
             dom_id(@attendance),
             partial: "attendances/row_form",
-            locals: { a: @attendance, d: @attendance.work_date, errors: @attendance.errors }
+            locals: { attendance: @attendance, date: @attendance.work_date, errors: @attendance.errors }
           ),
           turbo_stream.update("flash", partial: "shared/flash")
         ], status: :unprocessable_entity
@@ -126,10 +112,9 @@ class AttendancesController < ApplicationController
   end
 
   # フォーム編集の破棄
-  def cancel_row
+  def cancel_edit
     @attendance = current_user.attendances.find(params[:id])
-    date  = @attendance.work_date
-    @today = Attendance.business_date(Time.zone.now)
+    selected_business_date  = @attendance.work_date
 
     # 編集開始時に新規作成しただけで空のままなら削除して未登録表示に戻す
     if @attendance.started_at.blank? && @attendance.finished_at.blank? && @attendance.breaktimes.blank?
@@ -138,7 +123,7 @@ class AttendancesController < ApplicationController
       return render turbo_stream: turbo_stream.replace(
         target_id,
         partial: "attendances/row_display",
-        locals: { a: nil, d: date, today: @today }
+        locals: { attendance: nil, date: selected_business_date, today: business_today }
       )
     end
 
@@ -146,21 +131,21 @@ class AttendancesController < ApplicationController
     render turbo_stream: turbo_stream.replace(
       dom_id(@attendance),
       partial: "attendances/row_display",
-      locals: { a: @attendance, d: date, today: @today }
+      locals: { attendance: @attendance, date: selected_business_date, today: business_today }
     )
   end
 
 def destroy
   @attendance = current_user.attendances.find(params[:id])
-  date   = @attendance.work_date
+  selected_business_date  = @attendance.work_date
   target = dom_id(@attendance) 
   @attendance.destroy                         
-  @today = Attendance.business_date(Time.zone.now)
+  business_today = Attendance.business_date(Time.zone.now)
 
   render turbo_stream: turbo_stream.replace(
     target,
     partial: "attendances/row_display",
-    locals: { a: nil, d: date, today: @today }  
+    locals: { attendance: nil, date: selected_business_date, today: business_today }  
   )
 end
 
@@ -170,11 +155,11 @@ end
     @attendance = current_user.attendances.find(params[:id])
   end
 
-  def _row_params
+  def _attendance_params
     params.require(:attendance).permit(:started_at, :finished_at)
   end
 
-  def _build_dt(date, hm)
+  def _build_datetime(date, hm)
     return nil if hm.blank?
     Time.zone.parse("#{date} #{hm}")
   end
@@ -187,6 +172,25 @@ end
     end
     h, m = hm.split(":").map!(&:to_i)
     h * 3600 + m * 60
+  end
+
+  def _target_month
+    raw = params[:month].presence
+    date =
+      if raw&.match?(/\A\d{4}-\d{2}\z/)
+        Date.strptime(raw, "%Y-%m")
+      else
+        begin
+          raw ? Date.parse(raw) : Date.current
+        rescue ArgumentError
+          Date.current
+        end
+      end
+    date.beginning_of_month
+  end
+
+  def _month_range(month)
+    month..month.end_of_month
   end
 end
 

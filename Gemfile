@@ -14,13 +14,6 @@ gem 'cssbundling-rails', '~> 1.4'
 gem 'sprockets-rails', '~> 3.5'
 gem 'jsbundling-rails', '~> 1.3'
 
-group :development, :test do
-  gem 'factory_bot_rails'
-  gem 'faker'
-  gem 'rspec-rails', '~> 6.1'
-  gem 'rspec-request_describer', '~> 0.6.0'
-end
-
 group :development do
   gem 'annotate'
   gem 'foreman'
@@ -30,4 +23,14 @@ group :development do
   gem 'rubocop-performance', require: false
   gem 'rubocop-rails', require: false
   gem 'rubocop-rspec'
+end
+
+group :development, :test do
+  gem 'factory_bot_rails'
+  gem 'faker'
+  gem 'rspec-rails', '~> 6.1'
+end
+
+group :test do
+  gem 'rspec-request_describer', '~> 0.6.0'
 end

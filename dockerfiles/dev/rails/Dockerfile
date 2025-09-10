@@ -11,6 +11,11 @@ RUN apt-get update -y && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
+# === Gem install layer（本番は dev/test を除外）===
+ARG BUNDLE_WITHOUT="development:test"
+ENV BUNDLE_WITHOUT=${BUNDLE_WITHOUT}
+ENV BUNDLE_PATH=/usr/local/bundle
+
 # Cache - Gemをインストール
 COPY Gemfile Gemfile.lock ./
 RUN bundle install --jobs 4 --retry 3

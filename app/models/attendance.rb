@@ -5,14 +5,15 @@
 #  id          :bigint           not null, primary key
 #  finished_at :datetime
 #  started_at  :datetime
-#  work_date   :date
+#  work_on     :date             not null
 #  created_at  :datetime         not null
 #  updated_at  :datetime         not null
 #  user_id     :bigint           not null
 #
 # Indexes
 #
-#  index_attendances_on_user_id  (user_id)
+#  index_attendances_on_user_id              (user_id)
+#  index_attendances_on_user_id_and_work_on  (user_id,work_on) UNIQUE
 #
 # Foreign Keys
 #
@@ -32,12 +33,12 @@ class Attendance < ApplicationRecord
   has_many :breaktimes, dependent: :destroy
 
   # user_id に対して、workday が一意(unique)となることを強制
-  validates :work_date, presence: true, uniqueness: { scope: :user_id }
+  validates :work_on, presence: true, uniqueness: { scope: :user_id }
   validate :_finished_after_started
   validate :_finished_requires_started
 
-  # 出勤時に work_date を自動算出
-  before_validation :_set_work_date, if: -> { started_at.present? && will_save_change_to_started_at? }
+  # 出勤時に work_on を自動算出
+  before_validation :_set_work_on, if: -> { started_at.present? && will_save_change_to_started_at? }
 
   # 出勤基準で業務日を決める（カットオフ補正）
   def self.business_date(time)
@@ -63,8 +64,8 @@ class Attendance < ApplicationRecord
 
   private
 
-  def _set_work_date
-    self.work_date = self.class.business_date(started_at)
+  def _set_work_on
+    self.work_on = self.class.business_date(started_at)
   end
 
   def _finished_after_started

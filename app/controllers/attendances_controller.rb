@@ -9,9 +9,9 @@ class AttendancesController < ApplicationController
     month_range   = _month_range(@target_month)
 
     @attendances_by_date = current_user.attendances
-                              .where(work_date: month_range)
+                              .where(work_on: month_range)
                               .includes(:breaktimes)
-                              .index_by(&:work_date)
+                              .index_by(&:work_on)
 
     @days_in_month = month_range.to_a
   end
@@ -19,7 +19,7 @@ class AttendancesController < ApplicationController
   # 未登録日の編集開始：その日のレコードを作ってフォームに
   def create
     chosen_date = Date.parse(params[:date])
-    @attendance = current_user.attendances.find_or_create_by!(work_date: chosen_date)
+    @attendance = current_user.attendances.find_or_create_by!(work_on: chosen_date)
 
     # index 上の未登録行は id="attendance-YYYYMMDD" のフォールバックIDで描画している前提
     fallback_id = "attendance-#{chosen_date.strftime('%Y%m%d')}"
@@ -36,7 +36,7 @@ class AttendancesController < ApplicationController
     render turbo_stream: turbo_stream.replace(
       dom_id(@attendance),
       partial: "attendances/row_form",
-      locals: { attendance: @attendance, date: @attendance.work_date }
+      locals: { attendance: @attendance, date: @attendance.work_on }
     )
   end
 
@@ -46,8 +46,8 @@ class AttendancesController < ApplicationController
     finished_at_hm = params.dig(:attendance, :finished_at_hm)
     break_total_hm = params.dig(:attendance, :break_total_hm)
 
-    update_data[:started_at]  = _build_datetime(@attendance.work_date, started_at_hm)  unless started_at_hm.nil?
-    update_data[:finished_at] = _build_datetime(@attendance.work_date, finished_at_hm) unless finished_at_hm.nil?
+    update_data[:started_at]  = _build_datetime(@attendance.work_on, started_at_hm)  unless started_at_hm.nil?
+    update_data[:finished_at] = _build_datetime(@attendance.work_on, finished_at_hm) unless finished_at_hm.nil?
 
     Attendance.transaction do
       @attendance.update!(update_data)
@@ -65,7 +65,7 @@ class AttendancesController < ApplicationController
 
         if total_seconds > 0
           # 合計だけが必要なので「出勤時刻の5時間後」にダミー休憩を１つ作る
-          brake_base_time = (@attendance.started_at || Time.zone.parse("#{@attendance.work_date} 9:00")) + 5.hours
+          brake_base_time = (@attendance.started_at || Time.zone.parse("#{@attendance.work_on} 9:00")) + 5.hours
           @attendance.breaktimes.create!(started_at: brake_base_time, finished_at: brake_base_time + total_seconds)
         end
       end
@@ -78,7 +78,7 @@ class AttendancesController < ApplicationController
           turbo_stream.replace(
             dom_id(@attendance),
             partial: "attendances/row_display",
-            locals: { attendance: @attendance, date: @attendance.work_date, today: business_today }
+            locals: { attendance: @attendance, date: @attendance.work_on, today: business_today }
           ),
           turbo_stream.update("flash", partial: "shared/flash")
         ]
@@ -86,7 +86,7 @@ class AttendancesController < ApplicationController
       format.html {
         redirect_to user_attendances_path(
           current_user, 
-          month: @attendance.work_date.beginning_of_month
+          month: @attendance.work_on.beginning_of_month
         ), notice: I18n.t("flash.common.saved")
       }
     end
@@ -99,7 +99,7 @@ class AttendancesController < ApplicationController
           turbo_stream.replace(
             dom_id(@attendance),
             partial: "attendances/row_form",
-            locals: { attendance: @attendance, date: @attendance.work_date, errors: @attendance.errors }
+            locals: { attendance: @attendance, date: @attendance.work_on, errors: @attendance.errors }
           ),
           turbo_stream.update("flash", partial: "shared/flash")
         ], status: :unprocessable_entity
@@ -114,7 +114,7 @@ class AttendancesController < ApplicationController
   # フォーム編集の破棄
   def cancel_edit
     @attendance = current_user.attendances.find(params[:id])
-    selected_business_date  = @attendance.work_date
+    selected_business_date  = @attendance.work_on
 
     # 編集開始時に新規作成しただけで空のままなら削除して未登録表示に戻す
     if @attendance.started_at.blank? && @attendance.finished_at.blank? && @attendance.breaktimes.blank?
@@ -137,7 +137,7 @@ class AttendancesController < ApplicationController
 
 def destroy
   @attendance = current_user.attendances.find(params[:id])
-  selected_business_date  = @attendance.work_date
+  selected_business_date  = @attendance.work_on
   target = dom_id(@attendance) 
   @attendance.destroy                         
   business_today = Attendance.business_date(Time.zone.now)

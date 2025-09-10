@@ -21,8 +21,8 @@
 FactoryBot.define do
   factory :breaktime do
     association :attendance
-    started_at  { Time.zone.parse("#{attendance.work_date} 12:00") }
-    finished_at { Time.zone.parse("#{attendance.work_date} 12:45") }
+    started_at  { Time.zone.parse("#{attendance.work_on} 12:00") }
+    finished_at { Time.zone.parse("#{attendance.work_on} 12:45") }
 
     trait :open do
       finished_at { nil }

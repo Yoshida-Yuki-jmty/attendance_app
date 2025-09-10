@@ -23,7 +23,7 @@ users.each do |user|
   (month..today).each do |d|
 
     # テストデータ作成日までの勤怠情報を作成。
-    att = user.attendances.find_or_initialize_by(work_date: d)
+    att = user.attendances.find_or_initialize_by(work_on: d)
     att.breaktimes.destroy_all if att.persisted?
 
     start_at = tz.parse("#{d} 09:00")

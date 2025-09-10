@@ -25,7 +25,7 @@ class CurrentAttendancesController < ApplicationController
     @current_attendance ||= current_user
       .attendances
       .includes(:breaktimes)
-      .find_or_initialize_by(work_date: business_today)
+      .find_or_initialize_by(work_on: business_today)
   end
 
   def _opened_break

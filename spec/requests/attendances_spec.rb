@@ -31,7 +31,7 @@ RSpec.describe "Attendances", type: :request do
     before { sign_in(user) }
 
     it "edit: turbo-stream が返る" do
-      a = create(:attendance, :finished, user: user, work_date: Date.new(2025,9,1))
+      a = create(:attendance, :finished, user: user, work_on: Date.new(2025,9,1))
       get edit_user_attendance_path(user, a, format: :turbo_stream)
       expect(response.media_type).to eq Mime[:turbo_stream]
       expect(response.body).to include(%(action="replace"))
@@ -39,7 +39,7 @@ RSpec.describe "Attendances", type: :request do
     end
 
     it "save_row: 時刻を更新して turbo-stream で行を差し替え" do
-      a = create(:attendance, user: user, work_date: Date.new(2025,9,1), started_at: Time.zone.parse("2025-09-01 09:00"))
+      a = create(:attendance, user: user, work_on: Date.new(2025,9,1), started_at: Time.zone.parse("2025-09-01 09:00"))
       patch user_attendance_path(user, a, format: :turbo_stream),
             params: { attendance: { started_at_hm: "10:00", finished_at_hm: "18:00" } }
       expect(response.media_type).to eq Mime[:turbo_stream]
@@ -60,7 +60,7 @@ RSpec.describe "Attendances", type: :request do
 
     it "cancel_edit: 空の新規レコードは削除され未登録表示へ戻す" do
       date = Date.new(2025,9,3)
-      a = user.attendances.create!(work_date: date) # started/finished なし
+      a = user.attendances.create!(work_on: date) # started/finished なし
       get cancel_edit_user_attendance_path(user, a, format: :turbo_stream)
       expect(response.media_type).to eq Mime[:turbo_stream]
       expect(user.attendances.where(id: a.id)).to be_empty

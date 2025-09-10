@@ -40,7 +40,7 @@ RSpec.describe "Attendances", type: :request do
 
     it "save_row: 時刻を更新して turbo-stream で行を差し替え" do
       a = create(:attendance, user: user, work_on: Date.new(2025,9,1), started_at: Time.zone.parse("2025-09-01 09:00"))
-      patch user_attendance_path(user, a, format: :turbo_stream),
+      patch user_attendance_edit_session_path(user, a, format: :turbo_stream),
             params: { attendance: { started_at_hm: "10:00", finished_at_hm: "18:00" } }
       expect(response.media_type).to eq Mime[:turbo_stream]
       a.reload

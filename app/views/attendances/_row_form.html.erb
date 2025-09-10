@@ -1,3 +1,15 @@
+<%# 未登録かどうかで送信先を分岐 %>
+<% unregistered = attendance.started_at.blank? && attendance.finished_at.blank? && attendance.breaktimes.blank? %>
+<% save_url =
+    if unregistered
+      # 未登録 → attendances#update（未登録だけ保存可）
+      user_attendance_path(current_user, attendance, format: :turbo_stream)
+    else
+      # 登録済み → edit_sessions#update（登録済み保存はこちら）
+      user_attendance_edit_session_path(current_user, attendance, format: :turbo_stream)
+    end %>
+
+
 <% form_dom_id = "#{dom_id(attendance)}-form" %>
 
 <tr id="<%= dom_id(attendance) %>" class="bg-amber-50">
@@ -50,7 +62,7 @@
       <div class="flex justify-start items-center gap-x-2 ml-3.5">
       <%= form_with model: [current_user, attendance],
                     id: form_dom_id,
-                    url: user_attendance_path(current_user, attendance, format: :turbo_stream),
+                    url: save_url,
                     method: :patch,
                     data: { turbo: true } do |f| %>
         <div class="flex gap-2 justify-end">
@@ -58,13 +70,9 @@
 
           <%= link_to "破棄",
                 user_attendance_edit_session_path(current_user, attendance, format: :turbo_stream),
-                data: { turbo_stream: true },
+                data: { turbo_method: :delete },
                 class: "px-2 py-0.5 border rounded bg-gray-500 text-white" %>
         </div>
-
-        <% if defined?(errors) && errors.present? %>
-          <div class="text-red-600 text-xs mt-1"><%= errors.full_messages.to_sentence %></div>
-        <% end %>
       <% end %>
     </td>
   </div>

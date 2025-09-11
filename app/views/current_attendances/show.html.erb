@@ -1,11 +1,11 @@
-<h1 class="text-3xl font-bold text-center mb-4">本日の日報</h1>
+<h1 class="text-3xl font-bold text-center mb-12">本日の日報</h1>
 
 <% date = (@current_attendance&.work_on || business_today) %>
-<p class="mb-3 text-right text-gray-600">
+<h2 class="text-xl text-center text-center text-gray-600 my-12">
   今日は <%= date.strftime("%-m月%-d日") %>（<%= %w(日 月 火 水 木 金 土)[date.wday] %>）です。
 </p>
 
-<p class="mb-2">
+<p class=" text-left mt-12 mb-4 ml-2">
   現在状況：<%= daily_status_badge(@current_attendance, @opened_break) %>
 </p>
 
@@ -14,7 +14,7 @@
 <% dis_bs   = attendance_button_disabled?(:break_start, @current_attendance, @opened_break) %>
 <% dis_be   = attendance_button_disabled?(:break_end,   @current_attendance, @opened_break) %>
 
-<div class="mb-3 flex gap-2">
+<div class="mb-3 flex justify-center gap-3">
   <%= button_to "出勤",
         user_current_attendance_path(current_user),
         method: :post,
@@ -41,7 +41,7 @@
 </div>
 
 <table class="w-full border text-sm">
-  <thead class="bg-gray-100">
+  <thead class="bg-gray-100 ">
     <tr>
       <th class="border px-2 py-1">出勤</th>
       <th class="border px-2 py-1">退勤</th>
@@ -52,11 +52,11 @@
   </thead>
   <tbody>
     <tr>
-      <td class="border px-2 py-1"><%= format_time_or_dash(@current_attendance&.started_at) %></td>
-      <td class="border px-2 py-1"><%= format_time_or_dash(@current_attendance&.finished_at) %></td>
-      <td class="border px-2 py-1"><%= breaktimes_html(@current_attendance) %></td>
-      <td class="border px-2 py-1"><%= @current_attendance ? format_hhmm_or_dash(@current_attendance.break_seconds)  : "-" %></td>
-      <td class="border px-2 py-1"><%= @current_attendance ? format_hhmm_or_dash(@current_attendance.worked_seconds) : "-" %></td>
+      <td class="border px-2 py-1 text-center"><%= format_time_or_dash(@current_attendance&.started_at) %></td>
+      <td class="border px-2 py-1 text-center"><%= format_time_or_dash(@current_attendance&.finished_at) %></td>
+      <td class="border px-2 py-1 text-center"><%= breaktimes_html(@current_attendance) %></td>
+      <td class="border px-2 py-1 text-center"><%= @current_attendance ? format_hhmm_or_dash(@current_attendance.break_seconds)  : "-" %></td>
+      <td class="border px-2 py-1 text-center"><%= @current_attendance ? format_hhmm_or_dash(@current_attendance.worked_seconds) : "-" %></td>
     </tr>
   </tbody>
 </table>

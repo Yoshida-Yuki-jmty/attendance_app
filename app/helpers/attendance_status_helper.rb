@@ -9,6 +9,7 @@ module AttendanceStatusHelper
 
     return :on_break    if opened_break
     return :working     if attendance.started_at.present?
+
     :none
   end
 end

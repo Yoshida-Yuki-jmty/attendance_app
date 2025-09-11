@@ -20,12 +20,11 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class Attendance < ApplicationRecord
-
   # -------------------------------------------------------------------
 
   # !! 5:00 区切りの場合、複雑化したため0:00に修正 !!
   # 他の箇所はコメント含めそのままにしておく（テストのみ修正）
-  CUTOFF_HOUR = 0 
+  CUTOFF_HOUR = 0
 
   # -------------------------------------------------------------------
 
@@ -55,6 +54,7 @@ class Attendance < ApplicationRecord
 
   def worked_seconds
     return 0 unless started_at && finished_at
+
     (finished_at - started_at) - break_seconds
   end
 
@@ -70,14 +70,15 @@ class Attendance < ApplicationRecord
 
   def _finished_after_started
     return unless started_at.present? && finished_at.present?
-    if finished_at < started_at
-      errors.add(:finished_at, :after_started)
-    end
+
+    return unless finished_at < started_at
+
+    errors.add(:finished_at, :after_started)
   end
 
   def _finished_requires_started
-    if finished_at.present? && started_at.blank?
-      errors.add(:started_at, :required_before_finished)
-    end
+    return unless finished_at.present? && started_at.blank?
+
+    errors.add(:started_at, :required_before_finished)
   end
 end

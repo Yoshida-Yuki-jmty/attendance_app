@@ -13,10 +13,11 @@ module Attendances
 
       if attendance
         if attendance.finished_at.present?
-          raise Attendances::AlreadyClockedOutError, I18n.t("attendances.errors.already_clocked_out")
-        else
-          attendance.update!(started_at: @now)
+          raise Attendances::AlreadyClockedOutError, I18n.t('attendances.errors.already_clocked_out')
         end
+
+        attendance.update!(started_at: @now)
+
       else
         @user.attendances.create!(work_on: business_today, started_at: @now)
       end
@@ -27,7 +28,7 @@ module Attendances
       attendance     =  @user.attendances.find_by(work_on: business_today) ||
                         @user.attendances.find_by(work_on: business_today - 1)
 
-      raise Attendances::NoClockInError, I18n.t("attendances.errors.no_clock_in") unless attendance
+      raise Attendances::NoClockInError, I18n.t('attendances.errors.no_clock_in') unless attendance
 
       cutoff_end = _cutoff_end_for(attendance.work_on)
 
@@ -43,9 +44,7 @@ module Attendances
         if (br = attendance.breaktimes.opened.first)
           br.update!(finished_at: cutoff_end)
         end
-        if attendance.finished_at.blank? || attendance.finished_at < cutoff_end
-          attendance.update!(finished_at: cutoff_end)
-        end
+        attendance.update!(finished_at: cutoff_end) if attendance.finished_at.blank? || attendance.finished_at < cutoff_end
 
         next_date = attendance.work_on + 1
         next_attendance = @user.attendances.find_or_initialize_by(work_on: next_date)

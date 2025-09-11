@@ -11,11 +11,11 @@ class CurrentAttendancesController < ApplicationController
   end
 
   def create   # 打刻: 出勤
-    _punch!(:in,  notice: t("attendances.notices.clocked_in"))
+    _punch!(:in,  notice: t('attendances.notices.clocked_in'))
   end
 
   def update   # 打刻: 退勤
-    _punch!(:out, notice: t("attendances.notices.clocked_out"))
+    _punch!(:out, notice: t('attendances.notices.clocked_out'))
   end
 
   private
@@ -23,9 +23,9 @@ class CurrentAttendancesController < ApplicationController
   # ＝＝＝ 表示用の取得（メモ化） ＝＝＝
   def _current_attendance
     @current_attendance ||= current_user
-      .attendances
-      .includes(:breaktimes)
-      .find_or_initialize_by(work_on: business_today)
+                            .attendances
+                            .includes(:breaktimes)
+                            .find_or_initialize_by(work_on: business_today)
   end
 
   def _opened_break

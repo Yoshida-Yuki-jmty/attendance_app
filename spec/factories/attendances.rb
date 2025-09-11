@@ -24,18 +24,17 @@ FactoryBot.define do
     association :user
 
     # 既定は 当日 09:00-18:00
-    work_on   { Date.current }
+    work_on { Date.current }
     started_at  { Time.zone.parse("#{work_on} 09:00") }
     finished_at { Time.zone.parse("#{work_on} 18:00") }
 
     trait :no_clock_out do
       finished_at { nil }
     end
-  
+
     trait :finished do
       finished_at { Time.zone.parse("#{work_on} 18:00") }
     end
-
 
     trait :with_breaks do
       # 休憩を2本デフォルトで作る
@@ -53,4 +52,3 @@ FactoryBot.define do
     end
   end
 end
-

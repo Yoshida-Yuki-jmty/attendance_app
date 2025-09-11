@@ -3,16 +3,16 @@ source 'https://rubygems.org'
 ruby '3.1.2'
 gem 'bcrypt', '~> 3.1'
 gem 'bootsnap', '>= 1.4.4', require: false
+gem 'holiday_jp', '~> 0.7'
 gem 'pg', '~> 1.5'
 gem 'puma', '~> 5.6'
 gem 'rails', '6.1.7.9'
-gem "turbo-rails"
-gem 'holiday_jp', '~> 0.7'
+gem 'turbo-rails'
 
 # AssetsPipeline
 gem 'cssbundling-rails', '~> 1.4'
-gem 'sprockets-rails', '~> 3.5'
 gem 'jsbundling-rails', '~> 1.3'
+gem 'sprockets-rails', '~> 3.5'
 
 group :development do
   gem 'annotate'

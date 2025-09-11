@@ -28,8 +28,8 @@ class User < ApplicationRecord
   validates :password, length: { minimum: 8 }, allow_nil: true
 
   private
+
   def normalize_email
     self.email = email.to_s.strip.downcase
   end
-
 end

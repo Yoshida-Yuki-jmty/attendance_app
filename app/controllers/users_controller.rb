@@ -3,29 +3,31 @@ class UsersController < ApplicationController
   before_action :_set_user, only: %i[show edit update]
   before_action -> { require_current_user!(@user) }, only: %i[show edit update]
 
+  def show
+  end
+
   def new
     @user = User.new
+  end
+
+  def edit
   end
 
   def create
     @user = User.new(_user_params)
     if @user.save
-      redirect_to new_session_path, notice: I18n.t("flash.users.created")
+      redirect_to new_session_path, notice: I18n.t('flash.users.created')
     else
-      flash.now[:alert] = I18n.t("flash.users.create_failed")
+      flash.now[:alert] = I18n.t('flash.users.create_failed')
       render :new, status: :unprocessable_entity
     end
   end
 
-  def show; end
-
-  def edit; end
-
   def update
     if @user.update(_user_params)
-      redirect_to @user, notice: I18n.t("flash.users.updated")
+      redirect_to @user, notice: I18n.t('flash.users.updated')
     else
-      flash.now[:alert] = I18n.t("flash.users.update_failed")
+      flash.now[:alert] = I18n.t('flash.users.update_failed')
       render :edit, status: :unprocessable_entity
     end
   end

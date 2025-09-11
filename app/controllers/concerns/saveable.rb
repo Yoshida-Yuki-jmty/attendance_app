@@ -19,7 +19,7 @@ module Saveable
       unless break_total_hm.nil?
         total_seconds = parse_hm_to_seconds(attendance, break_total_hm)
         if total_seconds < 0
-          attendance.errors.add(:base, I18n.t("activerecord.errors.models.attendance.messages.break_total_negative"))
+          attendance.errors.add(:base, I18n.t('activerecord.errors.models.attendance.messages.break_total_negative'))
           raise ActiveRecord::RecordInvalid, attendance
         end
 
@@ -40,15 +40,19 @@ module Saveable
 
   def build_datetime(date, hm)
     return nil if hm.blank?
+
     Time.zone.parse("#{date} #{hm}")
   end
 
   def parse_hm_to_seconds(attendance, hm)
     return 0 if hm.blank?
+
     unless hm =~ /\A\d{1,2}:\d{2}\z/
-      raise ActiveRecord::RecordInvalid.new(attendance), I18n.t("activerecord.errors.models.attendance.messages.break_total_format")
+      raise ActiveRecord::RecordInvalid.new(attendance),
+            I18n.t('activerecord.errors.models.attendance.messages.break_total_format')
     end
-    h, m = hm.split(":").map!(&:to_i)
-    h * 3600 + m * 60
+
+    h, m = hm.split(':').map!(&:to_i)
+    (h * 3600) + (m * 60)
   end
 end

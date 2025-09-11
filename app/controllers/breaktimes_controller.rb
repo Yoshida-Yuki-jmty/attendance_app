@@ -5,15 +5,15 @@ class BreaktimesController < ApplicationController
   def create
     attendance = _current_attendance
     if attendance.nil?
-      redirect_to user_current_attendance_path(current_user), alert: I18n.t("breaktimes.errors.must_clock_in_first")
+      redirect_to user_current_attendance_path(current_user), alert: I18n.t('breaktimes.errors.must_clock_in_first')
       return
     end
 
     Breaktime.start_break_for!(attendance)
-    redirect_to user_current_attendance_path(current_user), notice: I18n.t("breaktimes.notices.started")
+    redirect_to user_current_attendance_path(current_user), notice: I18n.t('breaktimes.notices.started')
   rescue ActiveRecord::RecordNotUnique
-    redirect_to user_current_attendance_path(current_user), alert: I18n.t("breaktimes.errors.already_on_break")
-  rescue => e
+    redirect_to user_current_attendance_path(current_user), alert: I18n.t('breaktimes.errors.already_on_break')
+  rescue StandardError => e
     redirect_to user_current_attendance_path(current_user), alert: e.message
   end
 
@@ -21,14 +21,14 @@ class BreaktimesController < ApplicationController
   def update
     breaktime = current_user.breaktimes.find(params[:id])
     if breaktime.finished_at.present?
-      return redirect_to user_current_attendance_path(current_user), alert: I18n.t("breaktimes.errors.already_finished")
+      return redirect_to user_current_attendance_path(current_user), alert: I18n.t('breaktimes.errors.already_finished')
     end
 
     breaktime.update!(finished_at: Time.zone.now)
-    redirect_to user_current_attendance_path(current_user), notice: I18n.t("breaktimes.notices.finished")
+    redirect_to user_current_attendance_path(current_user), notice: I18n.t('breaktimes.notices.finished')
   rescue ActiveRecord::RecordNotFound
-    redirect_to user_current_attendance_path(current_user), alert: I18n.t("breaktimes.errors.not_found")
-  rescue => e
+    redirect_to user_current_attendance_path(current_user), alert: I18n.t('breaktimes.errors.not_found')
+  rescue StandardError => e
     redirect_to user_current_attendance_path(current_user), alert: e.message
   end
 

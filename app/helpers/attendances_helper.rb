@@ -10,7 +10,7 @@ module AttendancesHelper
   def daily_status_label(key)
     {
       blank:        "未登録",
-      future_blank: "—",
+      future_blank: "-",
       working:      "出勤中",
       on_break:     "休憩中",
       clocked_out:  "退勤済み"

@@ -7,7 +7,6 @@ module Attendances
     before_action :_set_attendance
 
     # 登録済みレコードの保存
-    # PATCH /users/:user_id/attendances/:attendance_id/edit_session
     def update
       apply_attendance_update!(@attendance)
 
@@ -50,7 +49,6 @@ module Attendances
     end
 
     # 編集破棄：空なら消して未登録表示／既存なら表示へ戻す
-    # DELETE /users/:user_id/attendances/:attendance_id/edit_session
     def destroy
       attendance = current_user.attendances.find(params[:attendance_id])
       selected   = attendance.work_on

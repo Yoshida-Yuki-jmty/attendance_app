@@ -8,24 +8,43 @@ RSpec.describe "Breaktimes", type: :request do
     let(:method) { :post }
     let(:path)   { user_breaktimes_path(user) }
 
-    before { Attendance.clock_in!(user) }
+    context "出勤済の場合" do
+      
+      before { Attendance.clock_in!(user) }
+      it do
+        expect { is_expected.to eq 302 }.to change { user.breaktimes.count }.by(1)
+        expect(response).to redirect_to(user_current_attendance_path(user))
+      end
+    end
 
-    it do
-      expect { is_expected.to eq 302 }.to change { user.breaktimes.count }.by(1)
-      expect(response).to redirect_to(user_current_attendance_path(user))
+    context "未出勤の場合" do
+      it do
+        is_expected.to eq 302
+        expect(response).to redirect_to(user_current_attendance_path(user))
+        expect(flash[:alert]).to be_present
+      end
     end
   end
 
-  context "PATCH /users/:user_id/breaktimes/:id" do
+  describe "PATCH /users/:user_id/breaktimes/:id" do
     let(:method) { :patch }
-    let(:bt)     { user.tap { Attendance.clock_in!(user) ; post user_breaktimes_path(user) }.breaktimes.last }
-    let(:path)   { user_breaktime_path(user, bt) }
+    let(:breaktime) { user.tap { Attendance.clock_in!(user) ; post user_breaktimes_path(user) }.breaktimes.last }
+    let(:path) { user_breaktime_path(user, breaktime) }
+    context "退勤前の場合" do
+      it do
+        is_expected.to eq 302
+        expect(breaktime.reload.finished_at).to be_present
+        expect(response).to redirect_to(user_current_attendance_path(user))
+      end
+    end
 
-    it do
-      is_expected.to eq 302
-      expect(bt.reload.finished_at).to be_present
-      expect(response).to redirect_to(user_current_attendance_path(user))
+    context "退勤済の場合" do
+      before { Attendance.clock_in!(user); post user_breaktimes_path(user); user.breaktimes.last.update!(finished_at: Time.zone.now) }
+      let(:breaktime) { user.breaktimes.last }
+      it do
+        is_expected.to eq 302
+        expect(flash[:alert]).to be_present
+      end
     end
   end
-
 end

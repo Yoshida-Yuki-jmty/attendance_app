@@ -2,9 +2,9 @@
 Rails.application.routes.draw do
   root 'current_attendances#show'
 
-  resources :users do
-    resource  :current_attendance, only: [:show, :create, :update]
-    resources :attendances, except: [:new] do
+  resources :users, except: [:index, :destroy] do
+    resource  :current_attendance, only: [:create, :show, :update]
+    resources :attendances, except: [:new, :show] do
       resource :edit_session, only: [:update, :destroy], module: :attendances
     end
     resources :breaktimes, only: [:create, :update]

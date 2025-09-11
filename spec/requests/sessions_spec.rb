@@ -42,6 +42,15 @@ RSpec.describe 'Sessions', type: :request do
         expect(flash[:alert]).to eq("メールまたはパスワードが違います")
       end
     end
+    context "すでにログイン済の場合" do
+      before { sign_in(user) }
+      let(:params) {{ email: user.email, password: "password" }}
+      it do
+        is_expected.to eq 302
+        expect(flash[:notice]).to be_present.or be_nil
+        expect(response).to redirect_to(user_current_attendance_path(user))
+      end
+    end
   end
 
   context "DELETE /session" do

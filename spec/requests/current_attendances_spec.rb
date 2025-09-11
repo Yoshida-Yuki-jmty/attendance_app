@@ -38,7 +38,7 @@ RSpec.describe "CurrentAttendances", type: :request do
     end
   end
 
-  context "PATCH /users/:user_id/current_attendance" do
+  describe "PATCH /users/:user_id/current_attendance" do
     let(:method) { :patch }
     let(:path)   { user_current_attendance_path(user) }
 

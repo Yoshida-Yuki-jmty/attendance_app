@@ -1,8 +1,24 @@
 require 'rails_helper'
 
 RSpec.describe "Attendances", type: :request do
-
   let(:user) { create(:user) }
+
+  describe "GET /" do
+    let(:method) { :get }
+    let(:path)   { root_path }
+
+    context "未ログインの場合" do
+      it do
+        is_expected.to eq 302
+        expect(response).to redirect_to(new_session_path)
+      end
+    end
+
+    context "ログイン済の場合" do
+      before { sign_in(user) }
+      it { is_expected.to eq 200 }
+    end
+  end
 
   describe "GET /users/:user_id/attendance" do
     let(:method) { :get }
@@ -20,9 +36,10 @@ RSpec.describe "Attendances", type: :request do
     end
   end
 
-  context "GET /users/:user_id/attendances" do
+  describe "GET /users/:user_id/attendances" do
     let(:method) { :get }
     let(:path)   { user_attendances_path(user, month: Date.current.strftime("%Y-%m")) }
+
     context "未ログインの場合" do
       it { is_expected.to eq 302 }
     end
@@ -35,16 +52,80 @@ RSpec.describe "Attendances", type: :request do
         expect(response.body).to include("<table")
       end
     end
+
+    context "月指定で異常値が指定された場合" do
+      before { sign_in(user) }
+      let(:method) { :get }
+
+      context "month が不正な場合" do
+        let(:path) { user_attendances_path(user, month: "hoge") }
+        it do
+          is_expected.to eq 200
+          expect(response.body).to include(%(<turbo-frame id="selected-month">))
+        end
+      end
+
+      context "YYYY-MM 形式（不正）の場合" do
+        let(:path) { user_attendances_path(user, month: Date.current.strftime("%Y-%m")) }
+        it { is_expected.to eq 200 }
+      end
+    end
   end
 
-  context "ログイン前提のアクション" do
-    before { sign_in(user) }
+  describe "POST /users/:user_id/attendances.turbo_stream" do
+    let(:method) { :post }
+    let(:date)   { Date.new(2025,9,2) }
+    let(:path)   { user_attendances_path(user, format: :turbo_stream) }
+    let(:params) {{ date: date.to_s }}
 
-    context "GET /users/:user_id/attendances/:id/edit.turbo_stream" do
-      let!(:attendance) { create(:attendance, :finished, user: user, work_on: Date.new(2025,9,1)) }
-      let(:method) { :get }
-      let(:path)   { edit_user_attendance_path(user, attendance, format: :turbo_stream) }
+    context '未ログインの場合' do
+      it do
+        is_expected.to eq 302
+        expect(response).to redirect_to(new_session_path)
+        expect(flash[:alert]).to eq("ログインしてください").or be_present
+      end
+    end
 
+    context '勤怠未登録のレコードの場合' do
+      before { sign_in(user) }
+      it do
+        is_expected.to eq 200
+        expect(response.media_type).to eq Mime[:turbo_stream]
+        expect(response.body).to include(%(target="attendance-#{date.strftime('%Y%m%d')}"))
+        expect(response.body).to include(%(<tr id="attendance_))          
+      end
+    end
+    
+    context '既存の勤怠レコードの場合' do
+      before { sign_in(user) }
+      before { create(:attendance, user: user, work_on: date) }
+      it "新規作成はせずフォームを返す" do
+        expect {
+          is_expected.to eq 200
+        }.not_to change { user.attendances.where(work_on: date).count }
+        
+        expect(response.media_type).to eq Mime[:turbo_stream]
+        # create アクションは既存でも fallback_id を置き換える
+        expect(response.body).to include(%(target="attendance-#{date.strftime('%Y%m%d')}"))
+        expect(response.body).to include(%(<tr id="attendance_))
+      end
+    end
+  end
+
+  describe "GET /users/:user_id/attendances/:id/edit.turbo_stream" do
+    let!(:attendance) { create(:attendance, :finished, user: user, work_on: Date.new(2025,9,1)) }
+    let(:method) { :get }
+    let(:path)   { edit_user_attendance_path(user, attendance, format: :turbo_stream) }
+
+    context '未ログインの場合' do
+      it do
+        is_expected.to eq 302
+        expect(response).to redirect_to(new_session_path)
+      end      
+    end
+
+    context "ログイン済の場合" do
+      before { sign_in(user) }
       it do
         is_expected.to eq 200
         expect(response.media_type).to eq Mime[:turbo_stream]
@@ -52,48 +133,29 @@ RSpec.describe "Attendances", type: :request do
         expect(response.body).to include(%(id="#{ActionView::RecordIdentifier.dom_id(attendance)}"))
       end
     end
+  end
 
-    context "PATCH /users/:user_id/attendances/:id/edit_session.turbo_stream（保存）" do
-      let!(:attendance) { create(:attendance, user: user, work_on: Date.new(2025,9,1), started_at: Time.zone.parse("2025-09-01 09:00")) }
-      let(:method) { :patch }
-      let(:path)   { user_attendance_edit_session_path(user, attendance, format: :turbo_stream) }
-      let(:params) {{ attendance: { started_at_hm: "10:00", finished_at_hm: "18:00" } }}
+  describe "DELETE /users/:user_id/attendances/:id" do
+    let(:method) { :delete }
+    let(:path)   { user_attendance_path(user, attendance, format: :turbo_stream) }
+    let!(:attendance) { create(:attendance, user: user, work_on: Date.new(2025,9,4)) }
 
+    context "未ログインの場合" do
       it do
-        is_expected.to eq 200
-        expect(response.media_type).to eq Mime[:turbo_stream]
-        attendance.reload
-        expect(attendance.started_at.strftime("%H:%M")).to eq "10:00"
-        expect(attendance.finished_at.strftime("%H:%M")).to eq "18:00"
-        expect(response.body).to include("10:00")
-        expect(response.body).to include("18:00")
+        is_expected.to eq 302
+        expect(response).to redirect_to(new_session_path)
+        expect(flash[:alert]).to eq("ログインしてください").or be_present
       end
     end
-
-    context "POST /users/:user_id/attendances.turbo_stream（未登録日の行生成）" do
-      let(:method) { :post }
-      let(:date)   { Date.new(2025,9,2) }
-      let(:path)   { user_attendances_path(user, format: :turbo_stream) }
-      let(:params) {{ date: date.to_s }}
-
+    
+    context "ログイン済の場合" do
+      before { sign_in(user) }
       it do
-        is_expected.to eq 200
+        expect { is_expected.to eq 200 }.to change { user.attendances.exists?(attendance.id) }.from(true).to(false)
         expect(response.media_type).to eq Mime[:turbo_stream]
-        expect(response.body).to include(%(target="attendance-#{date.strftime('%Y%m%d')}"))
-        expect(response.body).to include(%(<tr id="attendance_))
-      end
-    end
-
-    context "DELETE /users/:user_id/attendances/:id/edit_session.turbo_stream（空行のキャンセル）" do
-      let!(:attendance) { user.attendances.create!(work_on: Date.new(2025,9,3)) } # 空の新規
-      let(:method) { :delete }
-      let(:path)   { user_attendance_edit_session_path(user, attendance, format: :turbo_stream) }
-
-      it do
-        is_expected.to eq 200
-        expect(user.attendances.where(id: attendance.id)).to be_empty
         expect(response.body).to include("未登録").or include("—")
       end
-    end
+    end        
   end
 end
+

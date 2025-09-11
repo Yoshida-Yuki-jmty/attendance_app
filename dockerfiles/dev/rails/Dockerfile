@@ -40,7 +40,8 @@ RUN yarn install --frozen-lockfile || true
 FROM deps AS build
 
 ENV RAILS_ENV=production \
-    NODE_ENV=production
+    NODE_ENV=production \
+    SECRET_KEY_BASE=dummy
 
 COPY . .
 RUN bundle exec rails assets:precompile

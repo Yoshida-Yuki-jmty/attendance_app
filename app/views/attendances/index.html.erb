@@ -33,6 +33,20 @@
           <% end %>
         </tbody>
       </table>
+      <section class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div class="border rounded p-3 text-center">
+          <div class="text-xs text-gray-600">拘束時間 合計</div>
+          <div class="text-xl font-semibold"><%= @totals[:拘束] %></div>
+        </div>
+        <div class="border rounded p-3 text-center">
+          <div class="text-xs text-gray-600">休憩時間 合計</div>
+          <div class="text-xl font-semibold"><%= @totals[:休憩] %></div>
+        </div>
+        <div class="border rounded p-3 text-center">
+          <div class="text-xs text-gray-600">実働時間 合計</div>
+          <div class="text-xl font-semibold"><%= @totals[:実働] %></div>
+        </div>
+      </section>
     </div>
   </turbo-frame>
 </div>

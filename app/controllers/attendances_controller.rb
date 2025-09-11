@@ -8,13 +8,41 @@ class AttendancesController < ApplicationController
   def index
     @target_month = _target_month
     range = _month_range(@target_month)
-
     @attendances_by_date = current_user.attendances
                                        .where(work_on: range)
                                        .includes(:breaktimes)
                                        .index_by(&:work_on)
-
     @days_in_month = range.to_a
+    month_records = @attendances_by_date.values.compact
+
+    total_bind_sec = month_records.sum do |attendance|
+      if attendance.started_at.present? && attendance.finished_at.present?
+        (attendance.finished_at - attendance.started_at).to_i
+      else
+        0
+      end
+    end
+
+    total_rest_sec = month_records.sum do |attendance|
+      attendance.breaktimes.to_a.sum do |breaktime|
+        if breaktime.started_at.present? && breaktime.finished_at.present?
+          (breaktime.finished_at - breaktime.started_at).to_i
+        else
+          0
+        end
+      end
+    end
+
+    total_work_sec = [total_bind_sec - total_rest_sec, 0].max
+
+    @totals = {
+     拘束秒: total_bind_sec,
+     休憩秒: total_rest_sec,
+     実働秒: total_work_sec,
+     拘束: _sec_to_hm(total_bind_sec),
+     休憩: _sec_to_hm(total_rest_sec),
+     実働: _sec_to_hm(total_work_sec)
+    }
   end
 
   # 既存レコードの編集
@@ -131,5 +159,13 @@ class AttendancesController < ApplicationController
 
   def _month_range(month)
     month..month.end_of_month
+  end
+
+  # 見やすい HH:MM 表記に
+  def _sec_to_hm(sec)
+    sec = sec.to_i
+    hours = sec / 3600
+    minutes = (sec % 3600) / 60
+    format("%02d:%02d", hours, minutes)
   end
 end

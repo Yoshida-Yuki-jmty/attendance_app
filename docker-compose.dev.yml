@@ -24,11 +24,11 @@ services:
     build:
       context: .
       dockerfile: dockerfiles/dev/rails/Dockerfile
-      args:
-        BUNDLE_WITHOUT: "" 
+      target: development
     container_name: attendance-web
     env_file: .env
     environment:
+      RAILS_ENV: development
       AUTO_DB_PREPARE: "1"
       DATABASE_URL: ${DATABASE_URL}
       BUNDLE_WITHOUT: "" 
@@ -39,8 +39,13 @@ services:
       - "3000:3000"
     volumes:
       - .:/app
+      - node_modules:/app/node_modules
       - bundle_cache:/usr/local/bundle
+    command: ["bin/dev"]
+    tty: true
+    stdin_open: true
 
 volumes:
   pgdata:
   bundle_cache:
+  node_modules:

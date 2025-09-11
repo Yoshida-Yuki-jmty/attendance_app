@@ -21,14 +21,20 @@ RSpec.describe "CurrentAttendances", type: :request do
     end      
   end
 
-  context "POST /users/:user_id/current_attendance" do
-    before { sign_in(user) }
+  context "POST /users/:user_id/attendance" do
     let(:method) { :post }
     let(:path)   { user_current_attendance_path(user) }
 
-    it do
-      expect { is_expected.to eq 302 }.to change { user.attendances.count }.by(1)
-      expect(response).to redirect_to(root_path)
+    context "未ログインの場合" do
+      it { is_expected.to eq 302 }
+    end
+    
+    context "ログイン済の場合" do
+      before { sign_in(user) }
+      it do
+        expect { is_expected.to eq 302 }.to change { user.attendances.count }.by(1)
+        expect(response).to redirect_to(root_path)
+      end
     end
   end
 

@@ -96,30 +96,4 @@ RSpec.describe "Attendances", type: :request do
       end
     end
   end
-
-  context "ログイン前提のアクション" do
-    before { sign_in(user) }
-
-    context "POST /users/:user_id/attendance" do
-      let(:method) { :post }
-      let(:path)   { user_current_attendance_path(user) }
-
-      it do
-        expect { is_expected.to eq 302 }.to change { user.attendances.count }.by(1)
-        expect(response).to redirect_to(root_path)
-      end
-    end
-
-    context "PATCH /users/:user_id/attendance" do
-      let(:method) { :patch }
-      let(:path)   { user_current_attendance_path(user) }
-
-      before { Attendance.clock_in!(user) }
-
-      it do
-        expect { is_expected.to eq 302 }.to change { user.attendances.where("finished_at IS NOT NULL").count }.by(1)
-        expect(response).to redirect_to(root_path)
-      end
-    end
-  end
 end

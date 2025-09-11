@@ -1,0 +1,13 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: dockerfiles/dev/rails/Dockerfile
+      target: production
+    container_name: attendance-web
+    environment:
+      RAILS_ENV: production
+      RACK_ENV: production
+      AUTO_DB_PREPARE: "1"
+    ports:
+      - "3000:3000"

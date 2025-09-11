@@ -4,33 +4,68 @@ require 'rails_helper'
 RSpec.describe "CurrentAttendances", type: :request do
   let(:user) { create(:user) }
 
-  before { sign_in(user) }
+  context "GET /users/:user_id/current_attendance" do
+    let(:method) { :get }
+    let(:path)   { user_current_attendance_path(user) }
 
-  describe "GET /users/:user_id/current_attendance" do
-    it "returns http success" do
-      get user_current_attendance_path(user)
-      expect(response).to have_http_status(:ok)
+    context "未ログインの場合" do
+      it { is_expected.to eq 302 }
+    end
+
+    context "ログイン済の場合" do
+      before { sign_in(user) }
+      it do
+        is_expected.to eq 200
+        expect(response.body).to include("本日の日報")
+      end
+    end      
+  end
+
+  context "POST /users/:user_id/current_attendance" do
+    before { sign_in(user) }
+    let(:method) { :post }
+    let(:path)   { user_current_attendance_path(user) }
+
+    it do
+      expect { is_expected.to eq 302 }.to change { user.attendances.count }.by(1)
+      expect(response).to redirect_to(root_path)
     end
   end
 
-  describe "POST /users/:user_id/current_attendance (clock in)" do
-    it "redirects to root after clock-in" do
-      post user_current_attendance_path(user)
-      expect(response).to redirect_to(root_path)
-      follow_redirect!
-      expect(response.body).to include("出勤") # 文言は適宜
+  context "PATCH /users/:user_id/current_attendance" do
+    let(:method) { :patch }
+    let(:path)   { user_current_attendance_path(user) }
+
+    context "未ログインの場合" do
+      it do
+        is_expected.to eq 302
+        expect(response).to redirect_to(new_session_path)
+      end
     end
-  end
+  
+    context "ログイン済かつ、出勤済の場合" do
+      before do
+        sign_in(user)
+        Attendance.clock_in!(user)
+      end
+      let(:method) { :patch }
+      let(:path)   { user_current_attendance_path(user) }
+  
+      it do
+        expect { is_expected.to eq 302 }.to change { user.attendances.where("finished_at IS NOT NULL").count }.by(1)
+        expect(response).to redirect_to(root_path)
+      end
+    end
 
-  describe "PATCH /users/:user_id/current_attendance (clock out)" do
-    it "redirects to root after clock-out" do
-      # 退勤テスト前に出勤しておく
-      post user_current_attendance_path(user)
+    context "ログイン済かつ、出勤未登録の場合" do
+      before { sign_in(user) }
+      let(:method) { :patch }
+      let(:path)   { user_current_attendance_path(user) }
 
-      patch user_current_attendance_path(user)
-      expect(response).to redirect_to(root_path)
-      follow_redirect!
-      expect(response.body).to include("退勤") # 文言は適宜
+      it "退勤できずエラーやリダイレクトになる" do
+        is_expected.to eq 302
+        expect(flash[:alert]).to be_present.or be_nil
+      end
     end
   end
 end

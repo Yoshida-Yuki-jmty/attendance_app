@@ -43,6 +43,10 @@ class Attendance < ApplicationRecord
   def self.business_date(time)
     (time.in_time_zone - CUTOFF_HOUR.hours).to_date
   end
+  # 指定した業務日の「カットオフ終端」(翌日の cutoff 時刻) を返す
+  def self.cutoff_end_for(work_on)
+    Time.zone.local(work_on.year, work_on.month, work_on.day, CUTOFF_HOUR) + 1.day
+  end
 
   def self.clock_in!(user, now = Time.zone.now)
     Attendances::Punch.new(user: user, now: now, cutoff_hour: CUTOFF_HOUR).clock_in!

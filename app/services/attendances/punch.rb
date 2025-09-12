@@ -8,7 +8,7 @@ module Attendances
     end
 
     def clock_in!
-      business_today = _business_date(@now)
+      business_today = Attendance.business_date(@now)
       attendance = @user.attendances.find_by(work_on: business_today)
 
       if attendance
@@ -24,13 +24,13 @@ module Attendances
     end
 
     def clock_out!
-      business_today = _business_date(@now)
+      business_today = Attendance.business_date(@now)
       attendance     =  @user.attendances.find_by(work_on: business_today) ||
                         @user.attendances.find_by(work_on: business_today - 1)
 
       raise Attendances::NoClockInError, I18n.t('attendances.errors.no_clock_in') unless attendance
 
-      cutoff_end = _cutoff_end_for(attendance.work_on)
+      cutoff_end = Attendance.cutoff_end_for(attendance.work_on)
 
       if @now < cutoff_end
         if (br = attendance.breaktimes.opened.first)
@@ -52,16 +52,6 @@ module Attendances
         next_attendance.update!(finished_at: @now)
         next_attendance
       end
-    end
-
-    private
-
-    def _business_date(time)
-      (time.in_time_zone - @cutoff_hour.hours).to_date
-    end
-
-    def _cutoff_end_for(work_on)
-      Time.zone.local(work_on.year, work_on.month, work_on.day, @cutoff_hour) + 1.day
     end
   end
 end

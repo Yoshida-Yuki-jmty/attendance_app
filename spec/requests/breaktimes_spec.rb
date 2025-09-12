@@ -9,7 +9,7 @@ RSpec.describe 'Breaktimes', type: :request do
     let(:path)   { user_breaktimes_path(user) }
 
     context '出勤済の場合' do
-      before { Attendance.clock_in!(user) }
+      before { Attendance.clock_in!(user: user) }
       it do
         expect { is_expected.to eq 302 }.to change { user.breaktimes.count }.by(1)
         expect(response).to redirect_to(user_current_attendance_path(user))
@@ -29,7 +29,7 @@ RSpec.describe 'Breaktimes', type: :request do
     let(:method) { :patch }
     let(:breaktime) do
       user.tap do
-        Attendance.clock_in!(user)
+        Attendance.clock_in!(user: user)
         post user_breaktimes_path(user)
       end.breaktimes.last
     end
@@ -44,7 +44,7 @@ RSpec.describe 'Breaktimes', type: :request do
 
     context '退勤済の場合' do
       before do
-        Attendance.clock_in!(user)
+        Attendance.clock_in!(user: user)
         post user_breaktimes_path(user)
         user.breaktimes.last.update!(finished_at: Time.zone.now)
       end

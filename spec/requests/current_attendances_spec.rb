@@ -52,7 +52,7 @@ RSpec.describe 'CurrentAttendances', type: :request do
     context 'ログイン済かつ、出勤済の場合' do
       before do
         sign_in(user)
-        Attendance.clock_in!(user)
+        Attendance.clock_in!(user: user)
       end
       let(:method) { :patch }
       let(:path)   { user_current_attendance_path(user) }

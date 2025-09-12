@@ -48,12 +48,69 @@ class Attendance < ApplicationRecord
     Time.zone.local(work_on.year, work_on.month, work_on.day, CUTOFF_HOUR) + 1.day
   end
 
-  def self.clock_in!(user, now = Time.zone.now)
-    Attendances::Punch.new(user: user, now: now, cutoff_hour: CUTOFF_HOUR).clock_in!
+  # ===== 打刻ユースケース（Model に集約）=====
+
+  def self.punch!(user:, direction:, now: Time.zone.now)
+    case normalize_direction(direction)
+    when :in  then clock_in!(user: user, now: now)
+    when :out then clock_out!(user: user, now: now)
+    else
+      raise ArgumentError, "unknown punch direction: #{direction.inspect}"
+    end
   end
 
-  def self.clock_out!(user, now = Time.zone.now)
-    Attendances::Punch.new(user: user, now: now, cutoff_hour: CUTOFF_HOUR).clock_out!
+  def self.clock_in!(user:, now: Time.zone.now)
+    today = business_date(now)
+    attendance = user.attendances.find_by(work_on: today)
+
+    if attendance
+      if attendance.finished_at.present?
+        raise Attendances::AlreadyClockedOutError, I18n.t('attendances.errors.already_clocked_out')
+      end
+      attendance.update!(started_at: now)
+    else
+      user.attendances.create!(work_on: today, started_at: now)
+    end
+  end
+
+  def self.clock_out!(user:, now: Time.zone.now)
+    today = business_date(now)
+    attendance = user.attendances.find_by(work_on: today) ||
+                 user.attendances.find_by(work_on: today - 1)
+
+    raise Attendances::NoClockInError, I18n.t('attendances.errors.no_clock_in') unless attendance
+
+    cutoff_end = cutoff_end_for(attendance.work_on)
+
+    if now < cutoff_end
+      if (br = attendance.breaktimes.opened.first)
+        br.update!(finished_at: now)
+      end
+      attendance.update!(finished_at: now)
+      return attendance
+    end
+
+    ActiveRecord::Base.transaction do
+      if (br = attendance.breaktimes.opened.first)
+        br.update!(finished_at: cutoff_end)
+      end
+      if attendance.finished_at.blank? || attendance.finished_at < cutoff_end
+        attendance.update!(finished_at: cutoff_end)
+      end
+
+      next_date = attendance.work_on + 1
+      next_attendance = user.attendances.find_or_initialize_by(work_on: next_date)
+      next_attendance.started_at ||= cutoff_end
+      next_attendance.update!(finished_at: now)
+      next_attendance
+    end
+  end
+
+  def self.normalize_direction(direction)
+    d = direction.to_s.strip.downcase
+    return :in  if d == "in"
+    return :out if d == "out"
+    nil
   end
 
   def worked_seconds

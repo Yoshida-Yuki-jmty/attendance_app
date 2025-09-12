@@ -60,7 +60,7 @@ RSpec.describe Attendance, type: :model do
     it 'レコードが無ければ作成する' do
       travel_to Time.zone.parse('2025-09-08 09:00') do
         expect do
-          Attendance.clock_in!(user)
+          Attendance.clock_in!(user: user)
         end.to change { user.attendances.count }.by(1)
         a = user.attendances.last
         expect(a.work_on).to eq Date.new(2025, 9, 8)
@@ -74,7 +74,7 @@ RSpec.describe Attendance, type: :model do
       travel_to Time.zone.parse('2025-09-08 10:00') do
         create(:attendance, :finished, user: user, work_on: Date.new(2025, 9, 8))
         expect do
-          Attendance.clock_in!(user)
+          Attendance.clock_in!(user: user)
         end.to raise_error(Attendances::AlreadyClockedOutError)
       end
     end
@@ -84,17 +84,17 @@ RSpec.describe Attendance, type: :model do
     let(:user) { create(:user) }
 
     it '出勤が無ければエラー' do
-      expect { Attendance.clock_out!(user) }
+      expect { Attendance.clock_out!(user: user) }
         .to raise_error(Attendances::NoClockInError)
     end
 
     it 'CUTOFF時刻 以内なら同日で finished_at 更新' do
       travel_to Time.zone.parse('2025-09-08 09:00') do
-        Attendance.clock_in!(user)
+        Attendance.clock_in!(user: user)
       end
       travel_to Time.zone.parse('2025-09-08 18:00') do
         expect do
-          Attendance.clock_out!(user)
+          Attendance.clock_out!(user: user)
         end.to change { user.attendances.count }.by(0)
         a = user.attendances.last
         expect(a.finished_at).to be_present
@@ -104,11 +104,11 @@ RSpec.describe Attendance, type: :model do
     it '0:00 を跨ぐなら分割保存される' do
       # 23:00 出勤
       travel_to Time.zone.parse('2025-09-08 23:00') do
-        Attendance.clock_in!(user)
+        Attendance.clock_in!(user: user)
       end
       # 翌 06:00 退勤
       travel_to Time.zone.parse('2025-09-09 06:00') do
-        Attendance.clock_out!(user)
+        Attendance.clock_out!(user: user)
       end
 
       a1 = user.attendances.find_by(work_on: Date.new(2025, 9, 8))

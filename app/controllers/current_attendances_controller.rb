@@ -10,12 +10,14 @@ class CurrentAttendancesController < ApplicationController
     @opened_break       = _opened_break
   end
 
-  def create   # 打刻: 出勤
-    _punch!(:in,  notice: t('attendances.notices.clocked_in'))
+  def create   # 出勤
+    Attendance.punch!(user: current_user, direction: :in)
+    redirect_to root_path, notice: t('attendances.notices.clocked_in')
   end
 
-  def update   # 打刻: 退勤
-    _punch!(:out, notice: t('attendances.notices.clocked_out'))
+  def update   # 退勤
+    Attendance.punch!(user: current_user, direction: :out)
+    redirect_to root_path, notice: t('attendances.notices.clocked_out')
   end
 
   private
@@ -32,18 +34,6 @@ class CurrentAttendancesController < ApplicationController
     opened_break ||= _current_attendance.breaktimes.opened.first
   end
 
-  # ＝＝＝ 出退勤の共通処理 ＝＝＝
-  def _punch!(direction, notice:)
-    punch = Attendances::Punch.new(user: current_user)
-    case direction
-    when :in  then punch.clock_in!
-    when :out then punch.clock_out!
-    else           raise ArgumentError, "unknown punch direction: #{direction}"
-    end
-    redirect_to root_path, notice: notice
-  end
-
-  # ＝＝＝ 例外一本化 ＝＝＝
   def _handle_attendance_error(e)
     redirect_to root_path, alert: e.message
   end
